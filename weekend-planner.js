@@ -92,12 +92,57 @@ const schedules = {
   ]
 };
 
+const scheduleRules = {
+  weekend: {
+    label: "WEEKEND",
+    items: [
+      ["Protect sleep", "Keep the same wake-up time and try to sleep by 10 pm."],
+      ["Study one thing well", "Use 50-minute focus blocks instead of studying everything at once."],
+      ["Earn recovery time", "Enjoy games, hobbies and family after today's important work is done."]
+    ]
+  },
+  weekday: {
+    label: "WEEKDAY",
+    items: [
+      ["Prepare the night before", "Keep your bag, water bottle and uniform ready so mornings stay calm."],
+      ["Protect JEE attention", "Join each 6–9 pm class ready to write notes and mark every doubt."],
+      ["Finish with a buffer", "Do homework after class and stop by 10:30–11 pm without letting loose work spread later."]
+    ]
+  },
+  friday: {
+    label: "FRIDAY TEST",
+    items: [
+      ["Test first, then review", "Aim to complete the 6 pm test within one hour and avoid rushing."],
+      ["Learn from mistakes", "Use the next block to mark wrong answers and understand why they happened."],
+      ["Keep Friday controlled", "Do not turn a late test into an all-nighter; finish essentials and recover."]
+    ]
+  },
+  "saturday-school-half": {
+    label: "HALF-DAY SCHOOL",
+    items: [
+      ["Keep football recovery easy", "Eat, cool down and avoid rushing immediately after coaching."],
+      ["Leave school work with no backup", "Note every pending task before leaving and finish the easiest priority first."],
+      ["Use the afternoon wisely", "Balance homework, rest and recreation; protect sleep for tomorrow."]
+    ]
+  },
+  "saturday-school-full": {
+    label: "FULL-DAY SCHOOL",
+    items: [
+      ["Conserve morning energy", "Treat coaching as a warm-up: do not exhaust yourself before a full school day."],
+      ["Finish only what matters", "After school, choose one urgent homework task instead of overloading the evening."],
+      ["Prioritize recovery", "Eat properly, get chores done and use extra time for rest rather than screens."]
+    ]
+  }
+};
+
 const cursor = document.querySelector(".cursor");
 const timeline = document.querySelector("#timeline");
 const dayTabs = [...document.querySelectorAll(".day-tab")];
 const dayLabel = document.querySelector("#dayLabel");
 const progress = document.querySelector("#dayProgress");
 const progressText = document.querySelector("#dayProgressText");
+const rulesLabel = document.querySelector("#rulesLabel");
+const rulesGrid = document.querySelector("#rulesGrid");
 
 let currentDay = "saturday";
 
@@ -149,6 +194,22 @@ function updateProgress() {
   progressText.textContent = `${percent}% complete`;
 }
 
+function renderRules() {
+  let ruleKey = "weekend";
+  if (currentDay === "weekday" || currentDay === "friday") ruleKey = currentDay;
+  if (currentDay === "saturday-school-half" || currentDay === "saturday-school-full") ruleKey = currentDay;
+
+  const ruleSet = scheduleRules[ruleKey];
+  rulesLabel.innerHTML = `${ruleSet.label} <span>RULES</span>`;
+  rulesGrid.innerHTML = ruleSet.items.map((item, index) => `
+    <article>
+      <span>${String(index + 1).padStart(2, "0")}</span>
+      <h3>${item[0]}</h3>
+      <p>${item[1]}</p>
+    </article>
+  `).join("");
+}
+
 dayTabs.forEach((tab) => {
   tab.addEventListener("click", () => {
     currentDay = tab.dataset.day;
@@ -166,6 +227,7 @@ dayTabs.forEach((tab) => {
     };
     dayLabel.textContent = labels[currentDay];
     renderSchedule();
+    renderRules();
   });
 });
 
@@ -287,3 +349,4 @@ window.addEventListener("resize", resizeSky);
 resizeSky();
 drawSky();
 renderSchedule();
+renderRules();
