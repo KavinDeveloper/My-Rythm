@@ -261,7 +261,24 @@ function updateProgress() {
   const total = schedules[currentDay].length;
   const percent = Math.round(doneCount / total * 100);
   progress.style.width = `${percent}%`;
-  progressText.textContent = `${percent}% complete`;
+  if (percent === 100) {
+    const today = localDateKey();
+    localStorage.setItem(`my-rhythm-completed-${today}`, "done");
+  }
+  const streak = calculateRhythmStreak();
+  progressText.textContent = `${percent}% complete${streak ? ` • ${streak} day streak` : ""}`;
+}
+
+function calculateRhythmStreak() {
+  let streak = 0;
+  const cursorDate = new Date();
+  while (true) {
+    const key = localDateKey(cursorDate);
+    if (localStorage.getItem(`my-rhythm-completed-${key}`) !== "done") break;
+    streak += 1;
+    cursorDate.setDate(cursorDate.getDate() - 1);
+  }
+  return streak;
 }
 
 function renderRules() {
@@ -307,20 +324,37 @@ let ambientTimer = null;
 let ambientPlaying = false;
 let ambientMaster = null;
 
-function createAmbientTone(frequency, duration = 8, volume = 0.018) {
+const ambientMelodies = [
+  { name: "Quiet courage", root: 130.81, notes: [1, 1.125, 1.25, 1.5] },
+  { name: "Morning focus", root: 146.83, notes: [1, 1.125, 1.3333, 1.5] },
+  { name: "Soft determination", root: 164.81, notes: [1, 1.2, 1.3333, 1.5] },
+  { name: "Dreamy progress", root: 110, notes: [1, 1.125, 1.25, 1.5, 1.3333] },
+  { name: "Calm after effort", root: 174.61, notes: [1, 1.125, 1.3333, 1.5] }
+];
+
+function todayMelodyIndex() {
+  return [...localDateKey()].reduce((total, character) => total + character.charCodeAt(0), 0) % ambientMelodies.length;
+}
+
+function createAmbientTone(frequency, duration = 9, volume = 0.018) {
   if (!ambientContext || !ambientMaster) return;
   const now = ambientContext.currentTime;
   const oscillator = ambientContext.createOscillator();
   const overtone = ambientContext.createOscillator();
   const gain = ambientContext.createGain();
   const filter = ambientContext.createBiquadFilter();
+  const shimmer = ambientContext.createOscillator();
+  const shimmerGain = ambientContext.createGain();
 
   oscillator.type = "sine";
   overtone.type = "triangle";
+  shimmer.type = "sine";
   oscillator.frequency.value = frequency;
   overtone.frequency.value = frequency * 1.5;
+  shimmer.frequency.value = frequency * 2;
   filter.type = "lowpass";
-  filter.frequency.value = 900;
+  filter.frequency.value = 1100;
+  shimmerGain.gain.value = 0.004;
 
   gain.gain.setValueAtTime(0.0001, now);
   gain.gain.exponentialRampToValueAtTime(volume, now + 1.6);
@@ -328,18 +362,23 @@ function createAmbientTone(frequency, duration = 8, volume = 0.018) {
 
   oscillator.connect(filter);
   overtone.connect(filter);
+  shimmer.connect(shimmerGain);
+  shimmerGain.connect(filter);
   filter.connect(gain);
   gain.connect(ambientMaster);
   oscillator.start(now);
   overtone.start(now);
+  shimmer.start(now);
   oscillator.stop(now + duration + 0.1);
   overtone.stop(now + duration + 0.1);
+  shimmer.stop(now + duration + 0.1);
 }
 
 function playAmbientPattern() {
   if (!ambientPlaying) return;
-  const notes = [130.81, 146.83, 164.81, 196];
-  createAmbientTone(notes[Math.floor(Math.random() * notes.length)]);
+  const melody = ambientMelodies[todayMelodyIndex()];
+  const step = Math.floor(ambientContext.currentTime / 5.2) % melody.notes.length;
+  createAmbientTone(melody.root * melody.notes[step]);
 }
 
 async function startAmbientMusic() {
@@ -349,7 +388,8 @@ async function startAmbientMusic() {
   if (!ambientContext) {
     ambientContext = new AudioContextClass();
     ambientMaster = ambientContext.createGain();
-    ambientMaster.gain.value = 0.7;
+    const savedVolume = Number(localStorage.getItem("my-rhythm-music-volume") ?? 55) / 100;
+    ambientMaster.gain.value = savedVolume;
     ambientMaster.connect(ambientContext.destination);
   }
   if (ambientContext.state === "suspended") {
@@ -382,6 +422,79 @@ musicToggle?.addEventListener("click", async () => {
     console.error(error);
     musicToggle.querySelector(".music-label").textContent = "Audio unavailable";
   }
+});
+
+const musicSettingsToggle = document.querySelector("#musicSettingsToggle");
+const musicSettings = document.querySelector("#musicSettings");
+const musicVolume = document.querySelector("#musicVolume");
+const musicMood = document.querySelector("#musicMood");
+
+musicMood.textContent = ambientMelodies[todayMelodyIndex()].name;
+const savedVolume = Number(localStorage.getItem("my-rhythm-music-volume") ?? 55);
+musicVolume.value = String(savedVolume);
+
+musicSettingsToggle?.addEventListener("click", () => {
+  const open = musicSettings.classList.toggle("open");
+  musicSettings.setAttribute("aria-hidden", String(!open));
+});
+
+musicVolume?.addEventListener("input", () => {
+  localStorage.setItem("my-rhythm-music-volume", musicVolume.value);
+  if (ambientMaster) ambientMaster.gain.setTargetAtTime(Number(musicVolume.value) / 100, ambientContext.currentTime, 0.08);
+});
+
+const focusToggle = document.querySelector("#focusToggle");
+const focusPanel = document.querySelector("#focusPanel");
+const focusTime = document.querySelector("#focusTime");
+const focusShortTime = document.querySelector("#focusShortTime");
+const focusStart = document.querySelector("#focusStart");
+const focusReset = document.querySelector("#focusReset");
+let focusSeconds = 25 * 60;
+let focusInterval = null;
+
+function renderFocusTime() {
+  const minutes = Math.floor(focusSeconds / 60);
+  const seconds = focusSeconds % 60;
+  const label = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  focusTime.textContent = label;
+  focusShortTime.textContent = label;
+  document.title = focusInterval ? `${label} • My Rhythm` : "My Rhythm";
+}
+
+focusToggle?.addEventListener("click", () => {
+  const open = focusPanel.classList.toggle("open");
+  focusPanel.setAttribute("aria-hidden", String(!open));
+});
+
+focusStart?.addEventListener("click", () => {
+  if (focusInterval) {
+    window.clearInterval(focusInterval);
+    focusInterval = null;
+    focusStart.textContent = "Start";
+    document.title = "My Rhythm";
+    return;
+  }
+  focusStart.textContent = "Pause";
+  focusInterval = window.setInterval(() => {
+    focusSeconds -= 1;
+    if (focusSeconds <= 0) {
+      window.clearInterval(focusInterval);
+      focusInterval = null;
+      focusSeconds = 25 * 60;
+      focusStart.textContent = "Start";
+      document.title = "My Rhythm";
+    }
+    renderFocusTime();
+  }, 1000);
+  renderFocusTime();
+});
+
+focusReset?.addEventListener("click", () => {
+  window.clearInterval(focusInterval);
+  focusInterval = null;
+  focusSeconds = 25 * 60;
+  focusStart.textContent = "Start";
+  renderFocusTime();
 });
 
 const rescueToggle = document.querySelector("#rescueToggle");

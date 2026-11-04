@@ -8,13 +8,13 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>My Rhythm</title>
-  <link rel="icon" href="favicon.svg?v=202611041855" type="image/svg+xml" />
-  <link rel="apple-touch-icon" href="favicon.svg?v=202611041855" />
+  <link rel="icon" href="favicon.svg?v=202611042030" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="favicon.svg?v=202611042030" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400&family=Manrope:wght@300;500;700&family=Playfair+Display:ital,wght@1,600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
-  <link rel="stylesheet" href="weekend-planner.css?v=202611041855">
+  <link rel="stylesheet" href="weekend-planner.css?v=202611042030">
 </head>
 <body>
   <canvas id="sky" aria-hidden="true"></canvas>
@@ -56,6 +56,28 @@
     </span>
     <span class="music-label">Play rhythm</span>
   </button>
+  <button class="music-settings-toggle" id="musicSettingsToggle" type="button" aria-label="Open music settings">♪</button>
+  <div class="music-settings" id="musicSettings" aria-hidden="true">
+    <div>
+      <span>DAILY MELODY</span>
+      <strong id="musicMood">Quiet courage</strong>
+    </div>
+    <label for="musicVolume">Volume</label>
+    <input id="musicVolume" type="range" min="0" max="100" value="55">
+  </div>
+
+  <button class="focus-toggle" id="focusToggle" type="button" aria-label="Open focus timer">
+    <span>FOCUS</span>
+    <strong id="focusShortTime">25:00</strong>
+  </button>
+  <div class="focus-panel" id="focusPanel" aria-hidden="true">
+    <p>FOCUS SESSION</p>
+    <strong id="focusTime">25:00</strong>
+    <div class="focus-actions">
+      <button type="button" id="focusStart">Start</button>
+      <button type="button" id="focusReset">Reset</button>
+    </div>
+  </div>
 
   <button class="rescue-toggle" id="rescueToggle" type="button" aria-label="Open Rescue Plan AI">
     <span class="rescue-icon">✦</span>
@@ -152,6 +174,6 @@
   </aside>
   <div class="rescue-backdrop" id="rescueBackdrop"></div>
 
-  <script src="weekend-planner.js?v=202611041855"></script>
+  <script src="weekend-planner.js?v=202611042030"></script>
 </body>
 </html>
