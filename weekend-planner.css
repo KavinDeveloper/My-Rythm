@@ -27,7 +27,7 @@ button, a { cursor: none; }
 }
 .cursor {
   position: fixed; left: 0; top: 0; width: 18px; height: 18px;
-  border: 2px solid var(--cream); border-radius: 50%; z-index: 100;
+  border: 2px solid var(--cream); border-radius: 50%; z-index: 300;
   pointer-events: none; transform: translate(-50%, -50%);
   transition: width .25s, height .25s, background .25s;
   background: rgba(255,255,255,.12);
