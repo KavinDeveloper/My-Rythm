@@ -166,6 +166,88 @@ dayTabs.forEach((tab) => {
     };
     dayLabel.textContent = labels[currentDay];
     renderSchedule();
+
+    const musicToggle = document.querySelector("#musicToggle");
+    let ambientContext = null;
+    let ambientTimer = null;
+    let ambientPlaying = false;
+    let ambientMaster = null;
+
+    function createAmbientTone(frequency, duration = 5, volume = 0.025) {
+      if (!ambientContext || !ambientMaster) return;
+      const now = ambientContext.currentTime;
+      const oscillator = ambientContext.createOscillator();
+      const overtone = ambientContext.createOscillator();
+      const gain = ambientContext.createGain();
+      const filter = ambientContext.createBiquadFilter();
+
+      oscillator.type = "sine";
+      overtone.type = "triangle";
+      oscillator.frequency.value = frequency;
+      overtone.frequency.value = frequency * 2;
+      filter.type = "lowpass";
+      filter.frequency.value = 950;
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(volume, now + 1.4);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+      oscillator.connect(filter);
+      overtone.connect(filter);
+      filter.connect(gain);
+      gain.connect(ambientMaster);
+      oscillator.start(now);
+      overtone.start(now);
+      oscillator.stop(now + duration + 0.1);
+      overtone.stop(now + duration + 0.1);
+    }
+
+    function playAmbientPattern() {
+      if (!ambientPlaying) return;
+      const notes = [130.81, 146.83, 164.81, 196];
+      const note = notes[Math.floor(Math.random() * notes.length)];
+      createAmbientTone(note, 8, 0.018);
+      if (Math.random() > 0.45) {
+        setTimeout(() => createAmbientTone(note * 1.5, 6, 0.012), 900);
+      }
+    }
+
+    async function startAmbientMusic() {
+      ambientContext ||= new (window.AudioContext || window.webkitAudioContext)();
+      if (ambientContext.state === "suspended") await ambientContext.resume();
+      if (!ambientMaster) {
+        ambientMaster = ambientContext.createGain();
+        ambientMaster.gain.value = 0.6;
+        ambientMaster.connect(ambientContext.destination);
+      }
+      ambientPlaying = true;
+      playAmbientPattern();
+      ambientTimer = window.setInterval(playAmbientPattern, 5200);
+    }
+
+    function stopAmbientMusic() {
+      ambientPlaying = false;
+      window.clearInterval(ambientTimer);
+      if (ambientMaster && ambientContext) {
+        ambientMaster.gain.setTargetAtTime(0.0001, ambientContext.currentTime, 0.08);
+      }
+    }
+
+    musicToggle?.addEventListener("click", async () => {
+      if (ambientPlaying) {
+        stopAmbientMusic();
+      } else {
+        await startAmbientMusic();
+        if (ambientMaster && ambientContext) {
+          ambientMaster.gain.cancelScheduledValues(ambientContext.currentTime);
+          ambientMaster.gain.setValueAtTime(0.6, ambientContext.currentTime);
+        }
+      }
+      const playing = ambientPlaying;
+      musicToggle.classList.toggle("playing", playing);
+      musicToggle.setAttribute("aria-pressed", String(playing));
+      musicToggle.setAttribute("aria-label", playing ? "Pause ambient music" : "Play ambient music");
+      musicToggle.querySelector(".music-label").textContent = playing ? "Music on" : "Play rhythm";
+    });
   });
 });
 
