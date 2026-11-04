@@ -708,11 +708,23 @@ function resizeSky() {
   canvas.style.width = `${innerWidth}px`;
   canvas.style.height = `${innerHeight}px`;
   context.setTransform(ratio, 0, 0, ratio, 0, 0);
-  stars = Array.from({ length: 52 }, () => ({
+  const colors = [
+    "238,234,221",
+    "154,130,255",
+    "255,159,195",
+    "166,216,199",
+    "229,202,122"
+  ];
+  stars = Array.from({ length: 180 }, (_, index) => ({
     x: Math.random() * innerWidth,
     y: Math.random() * innerHeight,
-    vx: (Math.random() - .5) * .08,
-    vy: (Math.random() - .5) * .08
+    vx: (Math.random() - .5) * (index % 9 === 0 ? .32 : .14),
+    vy: (Math.random() - .5) * (index % 7 === 0 ? .28 : .12),
+    radius: index % 19 === 0 ? Math.random() * 1.8 + 1 : Math.random() * .75 + .25,
+    alpha: Math.random() * .5 + .18,
+    color: colors[index % colors.length],
+    pulse: Math.random() * Math.PI * 2,
+    pulseSpeed: Math.random() * .018 + .008
   }));
 }
 
@@ -720,11 +732,22 @@ function drawSky() {
   context.clearRect(0, 0, innerWidth, innerHeight);
   stars.forEach((star) => {
     star.x += star.vx; star.y += star.vy;
+    star.pulse += star.pulseSpeed;
     if (star.x < 0 || star.x > innerWidth) star.vx *= -1;
     if (star.y < 0 || star.y > innerHeight) star.vy *= -1;
-    context.beginPath(); context.arc(star.x, star.y, .65, 0, Math.PI * 2);
-    context.fillStyle = "rgba(238,234,221,.24)"; context.fill();
+    const flicker = star.alpha + Math.sin(star.pulse) * .12;
+    context.beginPath();
+    context.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+    context.fillStyle = `rgba(${star.color},${Math.max(.08, flicker)})`;
+    if (star.radius > 1.4) {
+      context.shadowBlur = 12;
+      context.shadowColor = `rgba(${star.color},.45)`;
+    } else {
+      context.shadowBlur = 0;
+    }
+    context.fill();
   });
+  context.shadowBlur = 0;
   requestAnimationFrame(drawSky);
 }
 
