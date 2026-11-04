@@ -98,8 +98,6 @@ const dayTabs = [...document.querySelectorAll(".day-tab")];
 const dayLabel = document.querySelector("#dayLabel");
 const progress = document.querySelector("#dayProgress");
 const progressText = document.querySelector("#dayProgressText");
-const nextTime = document.querySelector("#nextTime");
-const nextTask = document.querySelector("#nextTask");
 
 let currentDay = "saturday";
 
@@ -137,12 +135,10 @@ function renderSchedule() {
       const done = row.classList.contains("done");
       localStorage.setItem(storageKey(currentDay, index), done ? "done" : "");
       updateProgress();
-      updateNextTask();
     });
     timeline.appendChild(row);
   });
   updateProgress();
-  updateNextTask();
 }
 
 function updateProgress() {
@@ -151,19 +147,6 @@ function updateProgress() {
   const percent = Math.round(doneCount / total * 100);
   progress.style.width = `${percent}%`;
   progressText.textContent = `${percent}% complete`;
-}
-
-function updateNextTask() {
-  const firstIncomplete = [...timeline.querySelectorAll(".task-row")].find((row) => !row.classList.contains("done"));
-  if (!firstIncomplete) {
-    nextTime.textContent = "DONE";
-    nextTask.textContent = "Everything is complete";
-    return;
-  }
-  const index = [...timeline.children].indexOf(firstIncomplete);
-  const task = schedules[currentDay][index];
-  nextTime.textContent = task.time;
-  nextTask.textContent = task.title;
 }
 
 dayTabs.forEach((tab) => {
@@ -184,11 +167,6 @@ dayTabs.forEach((tab) => {
     dayLabel.textContent = labels[currentDay];
     renderSchedule();
   });
-});
-
-document.querySelector("#focusButton")?.addEventListener("click", () => {
-  const next = [...timeline.querySelectorAll(".task-row")].find((row) => !row.classList.contains("done"));
-  if (next) next.scrollIntoView({ behavior: "smooth", block: "center" });
 });
 
 const canvas = document.querySelector("#sky");

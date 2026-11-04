@@ -82,20 +82,6 @@ h1 em { color: var(--violet); font-family: "Playfair Display", serif; }
 .day-tab { border: 0; border-radius: 999px; padding: 12px 20px; background: transparent; color: var(--cream); font: 8px "DM Mono", monospace; letter-spacing: .16em; opacity: .5; }
 .day-tab.active { background: rgba(238,234,221,.09); opacity: 1; }
 
-.next-card {
-  display: none !important;
-  position: absolute; right: clamp(24px,5vw,72px); bottom: 38px; width: 280px;
-  display: grid; grid-template-columns: 55px 1fr 42px; align-items: center;
-  border-top: 1px solid rgba(238,234,221,.1); padding-top: 14px;
-}
-.next-label { font: 8px "DM Mono", monospace; letter-spacing: .14em; writing-mode: vertical-rl; opacity: .45; }
-.next-card strong { font: 30px "DM Mono", monospace; font-weight: 300; }
-.next-card p { margin: 4px 0 0; font-size: 11px; opacity: .65; }
-.next-card button {
-  width: 42px; height: 42px; border-radius: 50%; border: 1px solid rgba(238,234,221,.12);
-  background: transparent; color: var(--cream);
-}
-
 .schedule-section {
   min-height: 100svh; padding: 13vh clamp(24px,8vw,120px); display: grid;
   grid-template-columns: 300px 1fr; gap: clamp(40px,8vw,120px); border-top: 1px solid rgba(238,234,221,.06);
@@ -131,16 +117,12 @@ h1 em { color: var(--violet); font-family: "Playfair Display", serif; }
 .rules-grid article h3 { margin: 0 0 12px; font-size: 22px; font-weight: 400; }
 .rules-grid article p { margin: 0; font-size: 12px; line-height: 1.7; opacity: .52; }
 
-@media (max-width: 1300px) {
-  .next-card { display: none; }
-}
 
 @media (max-width: 900px) {
   body { cursor: auto; }
   button, a, .cursor { cursor: pointer; }
   .cursor { display: none; }
   h1 { font-size: clamp(48px,12vw,76px); }
-  .next-card { display: none; }
   .day-switcher {
     width: calc(100vw - 32px);
     max-width: 680px;
