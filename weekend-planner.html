@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400&family=Manrope:wght@300;500;700&family=Playfair+Display:ital,wght@1,600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
-  <link rel="stylesheet" href="weekend-planner.css?v=202611042230">
+  <link rel="stylesheet" href="weekend-planner.css?v=202611042300">
 </head>
 <body>
   <canvas id="sky" aria-hidden="true"></canvas>
@@ -67,12 +67,27 @@
     </div>
     <label for="musicVolume">Ambient volume</label>
     <input id="musicVolume" type="range" min="0" max="100" value="55">
+    <div class="music-limit" id="musicLimitStatus">3h 00m remaining today</div>
     <div class="spotify-player-block">
-      <span>SPOTIFY PLAYLIST</span>
+      <span>ON REPEAT</span>
       <iframe
+        class="spotify-embed"
+        data-src="https://open.spotify.com/embed/playlist/37i9dQZF1EprC88dv7H8Ax?utm_source=generator&theme=0"
         src="https://open.spotify.com/embed/playlist/37i9dQZF1EprC88dv7H8Ax?utm_source=generator&theme=0"
         height="152"
         title="Spotify On Repeat playlist"
+        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+        loading="lazy">
+      </iframe>
+    </div>
+    <div class="spotify-player-block">
+      <span>LIKED SONGS</span>
+      <iframe
+        class="spotify-embed"
+        data-src="https://open.spotify.com/embed/collection/tracks?utm_source=generator&theme=0"
+        src="https://open.spotify.com/embed/collection/tracks?utm_source=generator&theme=0"
+        height="152"
+        title="Spotify Liked Songs"
         allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
         loading="lazy">
       </iframe>
@@ -196,6 +211,6 @@
   </aside>
   <div class="rescue-backdrop" id="rescueBackdrop"></div>
 
-  <script src="weekend-planner.js?v=202611042230"></script>
+  <script src="weekend-planner.js?v=202611042300"></script>
 </body>
 </html>

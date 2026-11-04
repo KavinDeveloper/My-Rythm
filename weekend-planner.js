@@ -608,6 +608,9 @@ let ambientContext = null;
 let ambientTimer = null;
 let ambientPlaying = false;
 let ambientMaster = null;
+let musicLimitTimer = null;
+let lastMusicTick = Date.now();
+const dailyMusicLimitSeconds = 3 * 60 * 60;
 
 const ambientMelodies = [
   { name: "Quiet courage", root: 130.81, notes: [1, 1.125, 1.25, 1.5] },
@@ -668,7 +671,80 @@ function playAmbientPattern() {
   createAmbientTone(melody.root * melody.notes[step]);
 }
 
+function musicUsageKey() {
+  return `my-rhythm-music-usage-${localDateKey()}`;
+}
+
+function getMusicUsageSeconds() {
+  return Number(localStorage.getItem(musicUsageKey()) || 0);
+}
+
+function saveMusicUsageSeconds(seconds) {
+  localStorage.setItem(musicUsageKey(), String(Math.min(dailyMusicLimitSeconds, Math.max(0, seconds))));
+}
+
+function isMusicLimitReached() {
+  return getMusicUsageSeconds() >= dailyMusicLimitSeconds;
+}
+
+function formatMusicRemaining(seconds) {
+  const remaining = Math.max(0, dailyMusicLimitSeconds - seconds);
+  const totalMinutes = Math.ceil(remaining / 60);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return hours > 0 || minutes > 0 ? `${hours}h ${String(minutes).padStart(2, "0")}m remaining today` : "Daily 3-hour music limit reached";
+}
+
+function updateMusicLimitUI() {
+  const status = document.querySelector("#musicLimitStatus");
+  const usedSeconds = getMusicUsageSeconds();
+  const reached = usedSeconds >= dailyMusicLimitSeconds;
+  if (status) {
+    status.textContent = formatMusicRemaining(usedSeconds);
+    status.classList.toggle("exhausted", reached);
+  }
+  document.querySelector("#musicSettings")?.classList.toggle("music-limit-reached", reached);
+  document.querySelectorAll(".spotify-player-block").forEach((block) => {
+    let lock = block.querySelector(".music-limit-lock");
+    if (reached && !lock) {
+      lock = document.createElement("div");
+      lock.className = "music-limit-lock";
+      lock.textContent = "Today's 3-hour music limit has ended. Playback returns at midnight.";
+      block.appendChild(lock);
+    } else if (!reached && lock) {
+      lock.remove();
+    }
+  });
+  if (reached) enforceMusicLimit();
+}
+
+function enforceMusicLimit() {
+  if (ambientPlaying) stopAmbientMusic();
+  document.querySelectorAll(".spotify-embed").forEach((embed) => {
+    embed.removeAttribute("src");
+  });
+}
+
+function isMusicPlaybackActive() {
+  return ambientPlaying || (musicSettings?.classList.contains("open") && !document.hidden);
+}
+
+function tickMusicLimit() {
+  const now = Date.now();
+  const elapsed = Math.min(60, Math.floor((now - lastMusicTick) / 1000));
+  lastMusicTick = now;
+  if (elapsed <= 0 || document.hidden) return;
+  if (isMusicPlaybackActive() && !isMusicLimitReached()) {
+    saveMusicUsageSeconds(getMusicUsageSeconds() + elapsed);
+    updateMusicLimitUI();
+  }
+}
+
 async function startAmbientMusic() {
+  if (isMusicLimitReached()) {
+    updateMusicLimitUI();
+    throw new Error("Today's 3-hour music limit has been reached.");
+  }
   const AudioContextClass = window.AudioContext || window.webkitAudioContext;
   if (!AudioContextClass) throw new Error("Web Audio is not supported by this browser.");
 
@@ -723,12 +799,24 @@ musicVolume.value = String(savedVolume);
 musicSettingsToggle?.addEventListener("click", () => {
   const open = musicSettings.classList.toggle("open");
   musicSettings.setAttribute("aria-hidden", String(!open));
+  document.querySelectorAll(".spotify-embed").forEach((embed) => {
+    if (open && !isMusicLimitReached() && embed.dataset.src) {
+      embed.src = embed.dataset.src;
+    } else {
+      embed.removeAttribute("src");
+    }
+  });
+  updateMusicLimitUI();
 });
 
 musicVolume?.addEventListener("input", () => {
   localStorage.setItem("my-rhythm-music-volume", musicVolume.value);
   if (ambientMaster) ambientMaster.gain.setTargetAtTime(Number(musicVolume.value) / 100, ambientContext.currentTime, 0.08);
 });
+
+lastMusicTick = Date.now();
+updateMusicLimitUI();
+if (!musicLimitTimer) musicLimitTimer = window.setInterval(tickMusicLimit, 1000);
 
 const focusToggle = document.querySelector("#focusToggle");
 const focusPanel = document.querySelector("#focusPanel");
