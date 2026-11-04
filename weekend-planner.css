@@ -17,6 +17,7 @@ body {
   font-family: "Manrope", sans-serif;
   cursor: none;
 }
+.welcome-lock { overflow: hidden; }
 button, a { cursor: none; }
 
 #sky { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
@@ -50,6 +51,108 @@ button, a { cursor: none; }
   border-color: var(--pink);
   background: rgba(255,159,195,.08);
   box-shadow: 0 0 0 1px rgba(9,11,22,.72), 0 0 24px rgba(255,159,195,.38);
+}
+
+.welcome-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 72% 28%, rgba(154,130,255,.16), transparent 24rem),
+    radial-gradient(circle at 25% 75%, rgba(255,159,195,.08), transparent 22rem),
+    var(--ink);
+  transition: opacity .8s ease, visibility .8s ease, transform 1s cubic-bezier(.2,.75,.25,1);
+}
+.welcome-screen.leaving {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-100%);
+  pointer-events: none;
+}
+.welcome-glow {
+  position: absolute;
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  border: 1px solid rgba(238,234,221,.05);
+  animation: welcomeOrbit 18s linear infinite;
+}
+.welcome-glow::before {
+  content: "";
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  top: 50%;
+  left: -4px;
+  background: var(--pink);
+  box-shadow: 0 0 24px var(--pink);
+}
+.welcome-glow-one { right: -140px; top: -160px; }
+.welcome-glow-two { left: -190px; bottom: -220px; width: 520px; height: 520px; animation-direction: reverse; }
+@keyframes welcomeOrbit { to { transform: rotate(360deg); } }
+.welcome-content { position: relative; width: min(760px, calc(100vw - 48px)); text-align: center; z-index: 2; }
+.welcome-kicker { margin: 0 0 24px; font: 9px "DM Mono", monospace; letter-spacing: .38em; color: var(--pink); }
+.welcome-content h1 { margin: 0; font-size: clamp(64px, 11vw, 128px); line-height: .82; font-weight: 300; letter-spacing: -.07em; }
+.welcome-content h1 em { color: var(--violet); font-family: "Playfair Display", serif; }
+.welcome-content blockquote { max-width: 660px; margin: 54px auto 38px; }
+.welcome-content blockquote p {
+  margin: 0;
+  font-family: "Playfair Display", serif;
+  font-size: clamp(22px, 3vw, 36px);
+  line-height: 1.35;
+  font-style: italic;
+}
+.welcome-content blockquote footer {
+  margin-top: 16px;
+  font: 9px "DM Mono", monospace;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--mint);
+}
+.welcome-enter {
+  height: 48px;
+  padding: 0 8px 0 18px;
+  border: 1px solid rgba(238,234,221,.12);
+  border-radius: 999px;
+  background: rgba(238,234,221,.04);
+  color: var(--cream);
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  font: 8px "DM Mono", monospace;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+.welcome-enter i {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--pink);
+  position: relative;
+}
+.welcome-enter i::before {
+  content: "";
+  position: absolute;
+  left: 11px;
+  top: 8px;
+  width: 8px;
+  height: 13px;
+  border-right: 1px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+  transform: rotate(45deg);
+}
+.welcome-scroll {
+  position: absolute;
+  bottom: 28px;
+  margin: 0;
+  font: 7px "DM Mono", monospace;
+  letter-spacing: .24em;
+  text-transform: uppercase;
+  opacity: .42;
 }
 
 .topbar {
@@ -244,6 +347,13 @@ h1 em { color: var(--violet); font-family: "Playfair Display", serif; }
 }
 @media (max-width: 560px) {
   .topbar { height: 78px; }
+  .welcome-content { width: calc(100vw - 34px); }
+  .welcome-kicker { margin-bottom: 18px; font-size: 7px; }
+  .welcome-content h1 { font-size: clamp(58px, 19vw, 82px); }
+  .welcome-content blockquote { margin: 38px auto 30px; }
+  .welcome-content blockquote p { font-size: 20px; }
+  .welcome-content blockquote footer { font-size: 7px; }
+  .welcome-scroll { bottom: 18px; }
   .music-toggle { right: 14px; bottom: 14px; height: 44px; padding: 0 13px; }
   .rescue-toggle { left: 14px; bottom: 14px; height: 44px; padding-right: 14px; }
   .rescue-icon { width: 28px; height: 28px; }

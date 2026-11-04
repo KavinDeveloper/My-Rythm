@@ -144,6 +144,76 @@ const progressText = document.querySelector("#dayProgressText");
 const rulesLabel = document.querySelector("#rulesLabel");
 const rulesGrid = document.querySelector("#rulesGrid");
 
+const dailyQuotes = [
+  { text: "Success is the sum of small efforts, repeated day in and day out.", author: "Robert Collier" },
+  { text: "You do not rise to the level of your goals. You fall to the level of your systems.", author: "James Clear" },
+  { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
+  { text: "Great things are done by a series of small things brought together.", author: "Vincent van Gogh" },
+  { text: "Education is not preparation for life; education is life itself.", author: "John Dewey" },
+  { text: "It always seems impossible until it is done.", author: "Nelson Mandela" },
+  { text: "The future depends on what you do today.", author: "Mahatma Gandhi" },
+  { text: "Champions keep playing until they get it right.", author: "Billie Jean King" },
+  { text: "Excellence is not being the best; it is doing your best.", author: "Unknown" },
+  { text: "Rest is not idleness, and sometimes the most productive thing you can do is slow down.", author: "John Lubbock" },
+  { text: "A little progress each day adds up to big results.", author: "Satya Nani" },
+  { text: "Discipline is choosing between what you want now and what you want most.", author: "Abraham Lincoln" },
+  { text: "Start where you are. Use what you have. Do what you can.", author: "Arthur Ashe" },
+  { text: "Difficult roads often lead to beautiful destinations.", author: "Unknown" },
+  { text: "Consistency is what transforms average into excellence.", author: "Unknown" }
+];
+
+function localDateKey(date = new Date()) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function quoteIndexForToday() {
+  const dateKey = localDateKey();
+  let hash = 0;
+  for (let index = 0; index < dateKey.length; index += 1) {
+    hash = ((hash << 5) - hash) + dateKey.charCodeAt(index);
+    hash |= 0;
+  }
+  return Math.abs(hash) % dailyQuotes.length;
+}
+
+function showDailyQuote() {
+  const quote = dailyQuotes[quoteIndexForToday()];
+  document.querySelector("#dailyQuote").textContent = `“${quote.text}”`;
+  document.querySelector("#dailyQuoteAuthor").textContent = `— ${quote.author}`;
+}
+
+function enterRhythm() {
+  const welcome = document.querySelector("#welcomeScreen");
+  if (!welcome || welcome.classList.contains("leaving")) return;
+  welcome.classList.add("leaving");
+  welcome.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("welcome-lock");
+  window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 80);
+}
+
+showDailyQuote();
+const now = new Date();
+const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+window.setTimeout(showDailyQuote, midnight.getTime() - now.getTime() + 250);
+document.body.classList.add("welcome-lock");
+document.querySelector("#welcomeEnter")?.addEventListener("click", enterRhythm);
+window.addEventListener("wheel", (event) => {
+  if (event.deltaY > 20 && document.querySelector("#welcomeScreen")?.classList.contains("leaving") === false) enterRhythm();
+}, { passive: true });
+window.addEventListener("keydown", (event) => {
+  if (["Enter", "ArrowDown", "PageDown", " "].includes(event.key)) {
+    enterRhythm();
+  }
+});
+let welcomeTouchStart = 0;
+window.addEventListener("touchstart", (event) => {
+  welcomeTouchStart = event.touches[0]?.clientY || 0;
+}, { passive: true });
+window.addEventListener("touchmove", (event) => {
+  const currentTouch = event.touches[0]?.clientY || 0;
+  if (welcomeTouchStart - currentTouch > 35) enterRhythm();
+}, { passive: true });
+
 let currentDay = "saturday";
 
 window.addEventListener("mousemove", (event) => {

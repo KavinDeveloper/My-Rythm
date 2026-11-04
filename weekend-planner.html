@@ -8,18 +8,36 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>My Rhythm</title>
-  <link rel="icon" href="favicon.svg?v=20261104" type="image/svg+xml" />
-  <link rel="apple-touch-icon" href="favicon.svg?v=20261104" />
+  <link rel="icon" href="favicon.svg?v=202611041845" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="favicon.svg?v=202611041845" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400&family=Manrope:wght@300;500;700&family=Playfair+Display:ital,wght@1,600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
-  <link rel="stylesheet" href="weekend-planner.css?v=202611041819">
+  <link rel="stylesheet" href="weekend-planner.css?v=202611041845">
 </head>
 <body>
   <canvas id="sky" aria-hidden="true"></canvas>
   <div class="grain" aria-hidden="true"></div>
   <div class="cursor" aria-hidden="true"></div>
+
+  <section class="welcome-screen" id="welcomeScreen" aria-label="Daily welcome">
+    <div class="welcome-glow welcome-glow-one"></div>
+    <div class="welcome-glow welcome-glow-two"></div>
+    <div class="welcome-content">
+      <p class="welcome-kicker">YOUR DAILY RHYTHM</p>
+      <h1>Welcome,<br><em>Kavin.</em></h1>
+      <blockquote>
+        <p id="dailyQuote"></p>
+        <footer id="dailyQuoteAuthor"></footer>
+      </blockquote>
+      <button class="welcome-enter" id="welcomeEnter" type="button">
+        <span>Enter your rhythm</span>
+        <i aria-hidden="true"></i>
+      </button>
+    </div>
+    <p class="welcome-scroll">Scroll to begin</p>
+  </section>
 
   <header class="topbar">
     <a class="brand" href="#top" aria-label="My Rhythm">
@@ -117,6 +135,6 @@
   </aside>
   <div class="rescue-backdrop" id="rescueBackdrop"></div>
 
-  <script src="weekend-planner.js?v=202611041819"></script>
+  <script src="weekend-planner.js?v=202611041845"></script>
 </body>
 </html>
