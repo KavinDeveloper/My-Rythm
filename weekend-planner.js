@@ -17,6 +17,61 @@ const schedules = {
     { time: "20:30", end: "21:30", title: "Preview & prepare", note: "Pack your bag, review the next day's plan and dim screens.", color: "#e5ca7a" },
     { time: "21:30", end: "22:00", title: "Sleep routine", note: "Brush, set out clothes and prepare for a proper night's sleep.", color: "#ff9fc3" }
   ],
+  weekday: [
+    { time: "06:30", end: "06:50", title: "Wake up & hydrate", note: "Get up slowly, drink water and start the morning calmly.", color: "#9a82ff" },
+    { time: "06:50", end: "07:15", title: "Bath & get ready", note: "Freshen up and put on your school uniform.", color: "#a6d8c7" },
+    { time: "07:15", end: "07:45", title: "Breakfast", note: "Eat a proper breakfast and pack what you need.", color: "#e5ca7a" },
+    { time: "07:45", end: "08:00", title: "Van ready", note: "Check your bag, homework, water bottle and leave at 8:00.", color: "#ff9fc3" },
+    { time: "08:00", end: "17:00", title: "School", note: "Stay focused through classes and complete work given in school.", color: "#9a82ff" },
+    { time: "17:00", end: "17:15", title: "Bath", note: "Reach home, freshen up and change into comfortable clothes.", color: "#a6d8c7" },
+    { time: "17:15", end: "18:00", title: "Home chores", note: "Water plants, take down hanging clothes and load the unwashed clothes.", color: "#e5ca7a" },
+    { time: "18:00", end: "21:00", title: "JEE online class", note: "Attend carefully, write notes and mark doubts as they come.", color: "#ff9fc3" },
+    { time: "21:00", end: "22:00", title: "Homework & finish work", note: "Complete school homework first; allow a small buffer until 10:30 or 11.", color: "#9a82ff" },
+    { time: "22:00", end: "22:30", title: "Wind down", note: "Prepare for bed, keep your bag ready and stop heavy screen use.", color: "#a6d8c7" }
+  ],
+  friday: [
+    { time: "06:30", end: "06:50", title: "Wake up & hydrate", note: "Start the day calmly and drink plenty of water.", color: "#9a82ff" },
+    { time: "06:50", end: "07:15", title: "Bath & get ready", note: "Freshen up and prepare your school uniform.", color: "#a6d8c7" },
+    { time: "07:15", end: "07:45", title: "Breakfast", note: "Eat well before leaving for school.", color: "#e5ca7a" },
+    { time: "07:45", end: "08:00", title: "Van ready", note: "Check your bag and leave for the school van at 8:00.", color: "#ff9fc3" },
+    { time: "08:00", end: "17:00", title: "School", note: "Keep Friday focused and note work that needs completion.", color: "#9a82ff" },
+    { time: "17:00", end: "17:15", title: "Bath", note: "Reach home and freshen up immediately.", color: "#a6d8c7" },
+    { time: "17:15", end: "18:00", title: "Home chores", note: "Water plants, collect hanging clothes and load the laundry.", color: "#e5ca7a" },
+    { time: "18:00", end: "19:00", title: "JEE weekly test", note: "Begin at 6:00 and aim to complete the test within one hour.", color: "#ff9fc3" },
+    { time: "19:00", end: "21:00", title: "Study or class buffer", note: "Review test mistakes or complete one priority JEE topic.", color: "#9a82ff" },
+    { time: "21:00", end: "22:00", title: "Homework & other work", note: "Finish homework and use a small buffer until 10:30 or 11 if needed.", color: "#e5ca7a" },
+    { time: "22:00", end: "22:30", title: "Wind down", note: "Prepare for Saturday and relax before sleep.", color: "#a6d8c7" }
+  ],
+  "saturday-school-half": [
+    { time: "05:00", end: "05:20", title: "Wake up & hydrate", note: "Get ready for football coaching without rushing.", color: "#9a82ff" },
+    { time: "05:20", end: "05:45", title: "Morning reset", note: "Dress, stretch and prepare your football gear.", color: "#a6d8c7" },
+    { time: "05:45", end: "06:00", title: "Travel to coaching", note: "Reach on time and begin warming up.", color: "#e5ca7a" },
+    { time: "06:00", end: "07:00", title: "Football coaching", note: "Give the session your full attention and effort.", color: "#ff9fc3" },
+    { time: "07:00", end: "07:45", title: "Cool down & return", note: "Cool down, travel home and get ready for school.", color: "#a6d8c7" },
+    { time: "07:45", end: "08:00", title: "School departure", note: "Pack your bag and leave for the half-day school schedule.", color: "#e5ca7a" },
+    { time: "08:00", end: "13:00", title: "Half-day school", note: "Attend the morning sessions and collect all pending work.", color: "#ff9fc3" },
+    { time: "13:00", end: "14:30", title: "Lunch & bath", note: "Return by 1 pm, bathe, eat and begin recovery.", color: "#a6d8c7" },
+    { time: "14:30", end: "16:30", title: "Homework & school work", note: "Complete the easiest school work before it builds up.", color: "#9a82ff" },
+    { time: "16:30", end: "18:30", title: "Rest, hobby & family", note: "Recover from coaching and enjoy screen-free or personal time.", color: "#e5ca7a" },
+    { time: "18:30", end: "20:30", title: "Dinner & relaxation", note: "Eat and unwind; JEE online class is not scheduled today.", color: "#ff9fc3" },
+    { time: "20:30", end: "21:30", title: "Weekly prep", note: "Review the weekend and prepare for the coming week.", color: "#9a82ff" },
+    { time: "21:30", end: "22:00", title: "Sleep routine", note: "Put work away and get ready for proper sleep.", color: "#a6d8c7" }
+  ],
+  "saturday-school-full": [
+    { time: "05:00", end: "05:20", title: "Wake up & hydrate", note: "Start early and drink water before football coaching.", color: "#9a82ff" },
+    { time: "05:20", end: "05:45", title: "Morning reset", note: "Stretch, dress and prepare football equipment.", color: "#a6d8c7" },
+    { time: "05:45", end: "06:00", title: "Travel to coaching", note: "Leave on time for the 6:00 session.", color: "#e5ca7a" },
+    { time: "06:00", end: "07:00", title: "Football coaching", note: "Complete coaching, cool down and return home.", color: "#ff9fc3" },
+    { time: "07:00", end: "07:45", title: "Return & get ready", note: "Cool down, bathe and prepare quickly for school.", color: "#a6d8c7" },
+    { time: "07:45", end: "08:00", title: "School departure", note: "Leave with every needed school item.", color: "#e5ca7a" },
+    { time: "08:00", end: "17:00", title: "Full-day school", note: "Focus through the day and remember all home assignments.", color: "#ff9fc3" },
+    { time: "17:00", end: "17:15", title: "Bath", note: "Come home and freshen up before starting chores.", color: "#a6d8c7" },
+    { time: "17:15", end: "18:00", title: "Home chores", note: "Water plants, collect hanging clothes and load unwashed clothes.", color: "#e5ca7a" },
+    { time: "18:00", end: "19:00", title: "Dinner", note: "Eat a proper meal and begin recovering after coaching and school.", color: "#ff9fc3" },
+    { time: "19:00", end: "20:30", title: "Light homework", note: "Complete one urgent task only; avoid exhausting yourself.", color: "#9a82ff" },
+    { time: "20:30", end: "21:30", title: "Free recovery time", note: "Relax, talk with family or enjoy a quiet hobby.", color: "#a6d8c7" },
+    { time: "21:30", end: "22:00", title: "Sleep routine", note: "Prepare clothes and bag, then sleep for proper recovery.", color: "#e5ca7a" }
+  ],
   sunday: [
     { time: "05:00", end: "05:20", title: "Wake up & hydrate", note: "Begin slowly with water, fresh air and light movement.", color: "#9a82ff" },
     { time: "05:20", end: "05:45", title: "Morning reset", note: "Wash, stretch and prepare calmly for football coaching.", color: "#a6d8c7" },
@@ -71,7 +126,10 @@ function renderSchedule() {
     if (localStorage.getItem(storageKey(currentDay, index)) === "done") row.classList.add("done");
     row.innerHTML = `
       <div class="task-dot"></div>
-      <time class="task-time">${task.time}<br>— ${task.end}</time>
+      <time class="task-time" datetime="${task.time}">
+        <span class="time-start">${task.time}</span>
+        <span class="time-end">${task.end}</span>
+      </time>
       <div class="task-copy"><h3>${task.title}</h3><p>${task.note}</p></div>
       <button class="task-check" type="button" aria-label="Mark ${task.title} complete">✓</button>`;
     row.querySelector(".task-check").addEventListener("click", () => {
@@ -115,7 +173,15 @@ dayTabs.forEach((tab) => {
       item.classList.toggle("active", item === tab);
       item.setAttribute("aria-selected", item === tab ? "true" : "false");
     });
-    dayLabel.textContent = currentDay.toUpperCase();
+    const labels = {
+      saturday: "SATURDAY / FOOTBALL",
+      sunday: "SUNDAY",
+      weekday: "MONDAY — THURSDAY",
+      friday: "FRIDAY",
+      "saturday-school-half": "SATURDAY / HALF DAY",
+      "saturday-school-full": "SATURDAY / FULL DAY"
+    };
+    dayLabel.textContent = labels[currentDay];
     renderSchedule();
   });
 });
