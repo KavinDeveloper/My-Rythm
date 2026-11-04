@@ -355,6 +355,77 @@ h1 em { color: var(--violet); font-family: "Playfair Display", serif; }
 .task-check { width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(238,234,221,.12); background: transparent; color: var(--cream); font-size: 10px; transition: .3s; }
 .task-check:hover { border-color: var(--pink); transform: scale(1.08); }
 .task-row.done .task-check { background: var(--pink); border-color: var(--pink); color: var(--ink); }
+.task-row.just-completed { animation: taskCompleteRow .7s cubic-bezier(.2,.75,.25,1); }
+.task-row.just-completed .task-dot::before { animation: taskCompleteDot .7s cubic-bezier(.2,.75,.25,1); }
+.task-row.just-completed .task-check { animation: taskCompleteCheck .55s cubic-bezier(.2,.75,.25,1); }
+@keyframes taskCompleteRow {
+  0%, 100% { opacity: .48; transform: translateX(0); }
+  35% { opacity: 1; transform: translateX(7px); }
+}
+@keyframes taskCompleteDot {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 12px var(--task-color, var(--pink)); }
+  45% { transform: scale(3); box-shadow: 0 0 28px var(--task-color, var(--pink)); }
+}
+@keyframes taskCompleteCheck {
+  0%, 100% { transform: scale(1) rotate(0); }
+  45% { transform: scale(1.35) rotate(-8deg); }
+}
+.completion-particle {
+  position: fixed;
+  z-index: 270;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  animation: completionBurst .65s cubic-bezier(.15,.75,.25,1) forwards;
+}
+@keyframes completionBurst {
+  0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--particle-x)), calc(-50% + var(--particle-y))) scale(.15); }
+}
+.day-confetti {
+  position: fixed;
+  z-index: 270;
+  top: -18px;
+  width: 7px;
+  height: 13px;
+  border-radius: 2px;
+  pointer-events: none;
+  animation: confettiFall var(--confetti-duration) var(--confetti-delay) cubic-bezier(.15,.7,.25,1) forwards;
+}
+@keyframes confettiFall {
+  0% { transform: translate3d(0, 0, 0) rotate(0deg); opacity: 1; }
+  100% { transform: translate3d(var(--confetti-drift), 100vh, 0) rotate(720deg); opacity: 0; }
+}
+.completion-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 32px;
+  z-index: 280;
+  width: min(330px, calc(100vw - 32px));
+  min-height: 74px;
+  padding: 16px 20px;
+  border: 1px solid rgba(238,234,221,.12);
+  border-radius: 8px;
+  background: rgba(13,15,31,.96);
+  box-shadow: 0 18px 60px rgba(0,0,0,.42);
+  backdrop-filter: blur(18px);
+  transform: translate(-50%, 120px);
+  opacity: 0;
+  transition: .45s cubic-bezier(.2,.75,.25,1);
+}
+.completion-toast.visible { transform: translate(-50%, 0); opacity: 1; }
+.completion-toast span { display: block; margin-bottom: 5px; color: var(--pink); font: 8px "DM Mono", monospace; letter-spacing: .16em; text-transform: uppercase; }
+.completion-toast strong { font-family: "Playfair Display", serif; font-size: 20px; font-style: italic; font-weight: 600; }
+
+@media (prefers-reduced-motion: reduce) {
+  .task-row.just-completed,
+  .task-row.just-completed .task-dot::before,
+  .task-row.just-completed .task-check {
+    animation: none;
+  }
+}
 
 .rules-section { min-height: 70svh; padding: 12vh clamp(24px,8vw,120px); border-top: 1px solid rgba(238,234,221,.06); }
 .rules-grid { margin-top: 50px; display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
