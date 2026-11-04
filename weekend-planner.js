@@ -314,6 +314,126 @@ musicToggle?.addEventListener("click", async () => {
   }
 });
 
+const rescueToggle = document.querySelector("#rescueToggle");
+const rescuePanel = document.querySelector("#rescuePanel");
+const rescueBackdrop = document.querySelector("#rescueBackdrop");
+const rescueClose = document.querySelector("#rescueClose");
+const rescueReason = document.querySelector("#rescueReason");
+const rescueCreate = document.querySelector("#rescueCreate");
+const rescueResult = document.querySelector("#rescueResult");
+let rescueTime = 60;
+let rescuePriority = "school";
+
+function openRescuePanel() {
+  rescuePanel.classList.add("open");
+  rescueBackdrop.classList.add("open");
+  rescuePanel.setAttribute("aria-hidden", "false");
+  rescueReason.focus();
+}
+
+function closeRescuePanel() {
+  rescuePanel.classList.remove("open");
+  rescueBackdrop.classList.remove("open");
+  rescuePanel.setAttribute("aria-hidden", "true");
+}
+
+rescueToggle.addEventListener("click", openRescuePanel);
+rescueClose.addEventListener("click", closeRescuePanel);
+rescueBackdrop.addEventListener("click", closeRescuePanel);
+
+document.querySelectorAll("#timeOptions button").forEach((button) => {
+  button.addEventListener("click", () => {
+    document.querySelectorAll("#timeOptions button").forEach((item) => item.classList.remove("active"));
+    button.classList.add("active");
+    rescueTime = Number(button.dataset.time);
+  });
+});
+
+document.querySelectorAll("#priorityOptions button").forEach((button) => {
+  button.addEventListener("click", () => {
+    document.querySelectorAll("#priorityOptions button").forEach((item) => item.classList.remove("active"));
+    button.classList.add("active");
+    rescuePriority = button.dataset.priority;
+  });
+});
+
+function escapeRescueText(value) {
+  const element = document.createElement("div");
+  element.textContent = value;
+  return element.innerHTML;
+}
+
+function formatClock(date) {
+  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
+}
+
+function createRescuePlan() {
+  const reason = rescueReason.value.trim();
+  const text = reason.toLowerCase();
+  let priority = rescuePriority;
+
+  if (/tired|sick|ill|injury|headache|pain|exhaust/.test(text)) priority = "health";
+  else if (/test|exam|homework|school|assignment|revision/.test(text) && !/football/.test(text)) priority = "school";
+  else if (/jee|question|math|physics|chemistry/.test(text)) priority = "jee";
+  else if (/chore|plant|laundry|washing|clothes/.test(text)) priority = "chores";
+
+  const firstMinute = Math.max(30, Math.min(rescueTime * 0.55, rescueTime - 15));
+  const breakMinute = Math.max(5, Math.round(rescueTime * 0.08 / 5) * 5);
+  const remaining = rescueTime - firstMinute - breakMinute;
+  const start = new Date();
+  start.setSeconds(0, 0);
+  start.setMinutes(Math.ceil(start.getMinutes() / 15) * 15);
+
+  const plans = {
+    school: [
+      ["Start with the deadline", "Complete one urgent homework or revision task first. Use notes only after 10 minutes of trying."],
+      ["Quick recovery", "Drink water, stretch, and look away from screens."],
+      ["Finish or submit", "Complete corrections, pack the required books, and write tomorrow's first task on paper."]
+    ],
+    jee: [
+      ["Solve one weak topic", "Open the JEE topic you are weakest in and attempt 3–5 focused questions without notes."],
+      ["Correct the mistakes", "Check solutions, mark the exact mistake, and write one short rule to remember."],
+      ["Lock the progress", "Solve one final question and make a two-minute recap for tomorrow."]
+    ],
+    health: [
+      ["Recover first", "Eat something light, hydrate, and take 10 minutes away from study and screens."],
+      ["Gentle reset", "Do slow stretching or take a quiet walk. Stop immediately if anything hurts."],
+      ["Safe mini-task", "Complete only the most urgent 20-minute task, then protect sleep."]
+    ],
+    chores: [
+      ["Do the fastest chore", "Water the plants, collect clothes, or start washing—choose the one that blocks tomorrow."],
+      ["Clean reset", "Put the room and school bag back in order for five minutes."],
+      ["Return to priority", "Use the remaining time for the most important school task."]
+    ]
+  };
+
+  const selected = plans[priority];
+  const durations = [firstMinute, breakMinute, remaining];
+  let cursorTime = new Date(start);
+  const steps = selected.map((step, index) => {
+    const finish = new Date(cursorTime.getTime() + durations[index] * 60000);
+    const result = `<article class="rescue-step"><time>${formatClock(cursorTime)}–${formatClock(finish)}</time><div><strong>${step[0]}</strong><p>${step[1]}</p></div></article>`;
+    cursorTime = finish;
+    return result;
+  }).join("");
+
+  const reasonText = reason ? `Because: “${escapeRescueText(reason)}”` : "A fresh plan based on today's changes.";
+  rescueResult.innerHTML = `
+    <div class="rescue-plan">
+      <div class="rescue-plan-head"><h3>Your rescue plan</h3><span>${rescueTime} MINUTES</span></div>
+      <p style="font-size:11px;line-height:1.6;opacity:.48;margin:0 0 12px">${reasonText}</p>
+      ${steps}
+    </div>`;
+  localStorage.setItem("my-rhythm-rescue-plan", rescueResult.innerHTML);
+}
+
+rescueCreate.addEventListener("click", createRescuePlan);
+rescueReason.addEventListener("keydown", (event) => {
+  if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) createRescuePlan();
+});
+const savedRescuePlan = localStorage.getItem("my-rhythm-rescue-plan");
+if (savedRescuePlan) rescueResult.innerHTML = savedRescuePlan;
+
 const canvas = document.querySelector("#sky");
 const context = canvas.getContext("2d");
 let stars = [];

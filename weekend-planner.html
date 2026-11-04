@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400&family=Manrope:wght@300;500;700&family=Playfair+Display:ital,wght@1,600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
-  <link rel="stylesheet" href="weekend-planner.css?v=202611041807">
+  <link rel="stylesheet" href="weekend-planner.css?v=202611041819">
 </head>
 <body>
   <canvas id="sky" aria-hidden="true"></canvas>
@@ -37,6 +37,11 @@
       <i></i><i></i><i></i><i></i>
     </span>
     <span class="music-label">Play rhythm</span>
+  </button>
+
+  <button class="rescue-toggle" id="rescueToggle" type="button" aria-label="Open Rescue Plan AI">
+    <span class="rescue-icon">✦</span>
+    <span>Rescue AI</span>
   </button>
 
   <main id="top">
@@ -72,6 +77,46 @@
     </section>
   </main>
 
-  <script src="weekend-planner.js?v=202611041807"></script>
+  <aside class="rescue-panel" id="rescuePanel" aria-hidden="true" aria-label="Rescue Plan AI">
+    <div class="rescue-header">
+      <div>
+        <p>MY RHYTHM AI</p>
+        <h2>Rescue your plan.</h2>
+      </div>
+      <button id="rescueClose" type="button" aria-label="Close Rescue Plan AI">×</button>
+    </div>
+
+    <div class="rescue-body">
+      <label for="rescueReason">What changed?</label>
+      <textarea id="rescueReason" rows="3" placeholder="Example: Football ended late, I am tired, and homework is pending..."></textarea>
+
+      <div class="rescue-field">
+        <label>How much time do you have?</label>
+        <div class="rescue-options" id="timeOptions" role="group" aria-label="Available time">
+          <button type="button" data-time="30">30 min</button>
+          <button type="button" data-time="60" class="active">1 hour</button>
+          <button type="button" data-time="90">90 min</button>
+          <button type="button" data-time="120">2 hours</button>
+        </div>
+      </div>
+
+      <div class="rescue-field">
+        <label>What matters most now?</label>
+        <div class="rescue-options priority-options" id="priorityOptions" role="group" aria-label="Priority">
+          <button type="button" data-priority="school" class="active">School work</button>
+          <button type="button" data-priority="jee">JEE</button>
+          <button type="button" data-priority="health">Health & rest</button>
+          <button type="button" data-priority="chores">Chores</button>
+        </div>
+      </div>
+
+      <button class="rescue-create" id="rescueCreate" type="button">Create my rescue plan <span>→</span></button>
+
+      <div class="rescue-result" id="rescueResult" aria-live="polite"></div>
+    </div>
+  </aside>
+  <div class="rescue-backdrop" id="rescueBackdrop"></div>
+
+  <script src="weekend-planner.js?v=202611041819"></script>
 </body>
 </html>
