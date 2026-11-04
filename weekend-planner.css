@@ -161,6 +161,8 @@ button, a { cursor: none; }
 }
 .brand { color: var(--cream); text-decoration: none; display: flex; align-items: center; gap: 13px; font: 10px "DM Mono", monospace; letter-spacing: .18em; }
 .brand-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--pink); box-shadow: 0 0 18px var(--pink); }
+.topbar-status { display: flex; align-items: center; gap: 20px; }
+.live-clock { min-width: 82px; font: 9px "DM Mono", monospace; letter-spacing: .08em; color: var(--mint); text-align: right; }
 .week-progress { width: 155px; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; font: 8px "DM Mono", monospace; letter-spacing: .12em; opacity: .7; }
 .progress-track { width: 155px; height: 1px; background: rgba(238,234,221,.12); }
 .progress-track i { display: block; width: 0; height: 100%; background: var(--pink); transition: width .5s; box-shadow: 0 0 8px var(--pink); }
@@ -469,8 +471,10 @@ h1 em { color: var(--violet); font-family: "Playfair Display", serif; }
   .rescue-body { padding: 24px; }
   .music-label { font-size: 7px; }
   .brand span:last-child { max-width: 110px; line-height: 1.4; }
-  .week-progress { width: 100px; }
-  .progress-track { width: 100px; }
+  .topbar-status { gap: 8px; }
+  .live-clock { min-width: 68px; font-size: 8px; }
+  .week-progress { width: 78px; }
+  .progress-track { width: 78px; }
   .hero { padding-top: 100px; }
   h1 { line-height: .94; }
   .day-switcher { bottom: 30px; }

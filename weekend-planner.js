@@ -298,7 +298,7 @@ document.querySelectorAll("a, button").forEach((element) => {
 });
 
 function storageKey(day, index) {
-  return `weekend-plan-${day}-${index}`;
+  return `weekend-plan-${localDateKey(selectedCalendarDate)}-${day}-${index}`;
 }
 
 function renderSchedule() {
@@ -439,10 +439,23 @@ function updateProgress(celebrate = false) {
       celebrateDay();
       celebrateWeek();
     }
+  } else {
+    localStorage.removeItem(`my-rhythm-completed-${localDateKey(selectedCalendarDate)}`);
+    renderCalendar();
   }
   const streak = calculateRhythmStreak();
   progressText.textContent = `${percent}% complete${streak ? ` • ${streak} day streak` : ""}`;
 }
+
+function updateLiveClock() {
+  const clock = document.querySelector("#liveClock");
+  if (!clock) return;
+  const now = new Date();
+  clock.dateTime = now.toISOString();
+  clock.textContent = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
+}
+updateLiveClock();
+window.setInterval(updateLiveClock, 1000);
 
 function calculateRhythmStreak() {
   let streak = 0;
@@ -474,22 +487,37 @@ function renderRules() {
 
 dayTabs.forEach((tab) => {
   tab.addEventListener("click", () => {
-    currentDay = tab.dataset.day;
-    dayTabs.forEach((item) => {
-      item.classList.toggle("active", item === tab);
-      item.setAttribute("aria-selected", item === tab ? "true" : "false");
-    });
-    const labels = {
-      saturday: "SATURDAY / FOOTBALL",
-      sunday: "SUNDAY",
-      weekday: "MONDAY — THURSDAY",
-      friday: "FRIDAY",
-      "saturday-school-half": "SATURDAY / HALF DAY",
-      "saturday-school-full": "SATURDAY / FULL DAY"
-    };
-    dayLabel.textContent = labels[currentDay];
-    renderSchedule();
-    renderRules();
+    const scheduleDay = tab.dataset.day;
+    if (scheduleDay === "saturday-school-half" || scheduleDay === "saturday-school-full") {
+      currentDay = scheduleDay;
+      dayTabs.forEach((item) => {
+        item.classList.toggle("active", item === tab);
+        item.setAttribute("aria-selected", String(item === tab));
+      });
+      const saturday = new Date(calendarWeekStart);
+      saturday.setDate(saturday.getDate() + 5);
+      selectedCalendarDate = saturday;
+      dayLabel.textContent = scheduleDay === "saturday-school-half" ? "SATURDAY / HALF DAY" : "SATURDAY / FULL DAY";
+      renderSchedule();
+      renderRules();
+      renderCalendar();
+      return;
+    }
+    let matchingDate = null;
+    for (let index = 0; index < 7; index += 1) {
+      const date = new Date(calendarWeekStart);
+      date.setDate(date.getDate() + index);
+      if (scheduleForDate(date) === scheduleDay) {
+        if (scheduleDay !== "weekday" || (selectedCalendarDate.getDay() >= 1 && selectedCalendarDate.getDay() <= 4)) {
+          matchingDate = date;
+          if (localDateKey(date) === localDateKey(selectedCalendarDate)) break;
+        }
+      }
+    }
+    if (scheduleDay === "weekday" && selectedCalendarDate.getDay() >= 1 && selectedCalendarDate.getDay() <= 4) {
+      matchingDate = new Date(selectedCalendarDate);
+    }
+    if (matchingDate) selectCalendarDay(matchingDate, false);
   });
 });
 
