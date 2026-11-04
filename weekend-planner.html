@@ -8,13 +8,13 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>My Rhythm</title>
-  <link rel="icon" href="favicon.svg?v=202611041845" type="image/svg+xml" />
-  <link rel="apple-touch-icon" href="favicon.svg?v=202611041845" />
+  <link rel="icon" href="favicon.svg?v=202611041855" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="favicon.svg?v=202611041855" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400&family=Manrope:wght@300;500;700&family=Playfair+Display:ital,wght@1,600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
-  <link rel="stylesheet" href="weekend-planner.css?v=202611041849">
+  <link rel="stylesheet" href="weekend-planner.css?v=202611041855">
 </head>
 <body>
   <canvas id="sky" aria-hidden="true"></canvas>
@@ -111,10 +111,25 @@
       <div class="rescue-field">
         <label>How much time do you have?</label>
         <div class="rescue-options" id="timeOptions" role="group" aria-label="Available time">
+          <button type="button" data-time="15">15 min</button>
           <button type="button" data-time="30">30 min</button>
+          <button type="button" data-time="45">45 min</button>
           <button type="button" data-time="60" class="active">1 hour</button>
           <button type="button" data-time="90">90 min</button>
           <button type="button" data-time="120">2 hours</button>
+          <button type="button" data-time="180">3 hours</button>
+          <button type="button" data-time="240">4 hours</button>
+          <button type="button" data-time="360">6 hours</button>
+          <button type="button" data-time="480">All evening</button>
+        </div>
+      </div>
+
+      <div class="rescue-field">
+        <label>Are Vedantu classes running?</label>
+        <div class="rescue-options" id="classStatusOptions" role="group" aria-label="Vedantu class status">
+          <button type="button" data-status="normal" class="active">Classes normal</button>
+          <button type="button" data-status="canceled">Class canceled</button>
+          <button type="button" data-status="leave">Holiday / class leave</button>
         </div>
       </div>
 
@@ -123,6 +138,8 @@
         <div class="rescue-options priority-options" id="priorityOptions" role="group" aria-label="Priority">
           <button type="button" data-priority="school" class="active">School work</button>
           <button type="button" data-priority="jee">JEE</button>
+          <button type="button" data-priority="revision">Revision</button>
+          <button type="button" data-priority="extra">Use extra time</button>
           <button type="button" data-priority="health">Health & rest</button>
           <button type="button" data-priority="chores">Chores</button>
         </div>
@@ -135,6 +152,6 @@
   </aside>
   <div class="rescue-backdrop" id="rescueBackdrop"></div>
 
-  <script src="weekend-planner.js?v=202611041849"></script>
+  <script src="weekend-planner.js?v=202611041855"></script>
 </body>
 </html>

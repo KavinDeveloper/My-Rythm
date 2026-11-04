@@ -393,6 +393,7 @@ const rescueCreate = document.querySelector("#rescueCreate");
 const rescueResult = document.querySelector("#rescueResult");
 let rescueTime = 60;
 let rescuePriority = "school";
+let rescueClassStatus = "normal";
 
 function openRescuePanel() {
   rescuePanel.classList.add("open");
@@ -427,6 +428,14 @@ document.querySelectorAll("#priorityOptions button").forEach((button) => {
   });
 });
 
+document.querySelectorAll("#classStatusOptions button").forEach((button) => {
+  button.addEventListener("click", () => {
+    document.querySelectorAll("#classStatusOptions button").forEach((item) => item.classList.remove("active"));
+    button.classList.add("active");
+    rescueClassStatus = button.dataset.status;
+  });
+});
+
 function escapeRescueText(value) {
   const element = document.createElement("div");
   element.textContent = value;
@@ -441,44 +450,108 @@ function createRescuePlan() {
   const reason = rescueReason.value.trim();
   const text = reason.toLowerCase();
   let priority = rescuePriority;
+  let classStatus = rescueClassStatus;
+
+  if (/diwali|holiday|one week leave|week leave|classes leave|no vedantu|no class|cancelled|canceled|classes off/.test(text)) classStatus = "leave";
+  else if (/class canceled|class cancelled/.test(text)) classStatus = "canceled";
 
   if (/tired|sick|ill|injury|headache|pain|exhaust/.test(text)) priority = "health";
-  else if (/test|exam|homework|school|assignment|revision/.test(text) && !/football/.test(text)) priority = "school";
-  else if (/jee|question|math|physics|chemistry/.test(text)) priority = "jee";
+  else if (/test|exam|homework|school|assignment/.test(text) && !/football/.test(text)) priority = "school";
+  else if (/revision|revise/.test(text)) priority = "revision";
+  else if (/jee|vedantu|question|math|physics|chemistry/.test(text)) priority = "jee";
   else if (/chore|plant|laundry|washing|clothes/.test(text)) priority = "chores";
+  else if (/free time|extra time|excess time|nothing to do|diwali/.test(text)) priority = "extra";
 
-  const firstMinute = Math.max(30, Math.min(rescueTime * 0.55, rescueTime - 15));
-  const breakMinute = Math.max(5, Math.round(rescueTime * 0.08 / 5) * 5);
-  const remaining = rescueTime - firstMinute - breakMinute;
   const start = new Date();
   start.setSeconds(0, 0);
   start.setMinutes(Math.ceil(start.getMinutes() / 15) * 15);
 
-  const plans = {
-    school: [
-      ["Start with the deadline", "Complete one urgent homework or revision task first. Use notes only after 10 minutes of trying."],
-      ["Quick recovery", "Drink water, stretch, and look away from screens."],
-      ["Finish or submit", "Complete corrections, pack the required books, and write tomorrow's first task on paper."]
-    ],
-    jee: [
-      ["Solve one weak topic", "Open the JEE topic you are weakest in and attempt 3–5 focused questions without notes."],
-      ["Correct the mistakes", "Check solutions, mark the exact mistake, and write one short rule to remember."],
-      ["Lock the progress", "Solve one final question and make a two-minute recap for tomorrow."]
-    ],
-    health: [
-      ["Recover first", "Eat something light, hydrate, and take 10 minutes away from study and screens."],
-      ["Gentle reset", "Do slow stretching or take a quiet walk. Stop immediately if anything hurts."],
-      ["Safe mini-task", "Complete only the most urgent 20-minute task, then protect sleep."]
-    ],
-    chores: [
-      ["Do the fastest chore", "Water the plants, collect clothes, or start washing—choose the one that blocks tomorrow."],
-      ["Clean reset", "Put the room and school bag back in order for five minutes."],
-      ["Return to priority", "Use the remaining time for the most important school task."]
-    ]
-  };
+  let selected;
+  let durations;
 
-  const selected = plans[priority];
-  const durations = [firstMinute, breakMinute, remaining];
+  if (rescueTime >= 180) {
+    const breakMinutes = Math.round(rescueTime * 0.08 / 5) * 5;
+    const studyMinutes = Math.round((rescueTime - breakMinutes * 2) * 0.34 / 5) * 5;
+    const finalMinutes = rescueTime - studyMinutes * 2 - breakMinutes * 2;
+
+    if (classStatus === "leave" || classStatus === "canceled" || priority === "extra") {
+      selected = [
+        ["Replace the missed JEE class", "Study the next unlearnt Vedantu topic or watch the previous lesson for one structured block."],
+        ["Screen-free reset", "Drink water, stretch, walk or have a healthy snack."],
+        ["JEE problem practice", "Attempt 8–12 medium questions. Mark doubts instead of instantly checking solutions."],
+        ["Move and recharge", "Take a proper break. Avoid social media scrolling and protect your attention."],
+        ["Complete the remaining priority", "Use the final block for school homework, revision, a weak JEE chapter or one useful buffer task."]
+      ];
+      durations = [studyMinutes, breakMinutes, studyMinutes, breakMinutes, finalMinutes];
+      if (priority !== "extra" && priority !== "jee") priority = "extra";
+    } else if (priority === "school") {
+      selected = [
+        ["Urgent school work", "Complete one deadline, test preparation or correction task before starting anything else."],
+        ["Quick reset", "Stand, drink water and look away from screens."],
+        ["School revision block", "Study notes and recall the topic before checking the book."],
+        ["Break and reset", "Eat, stretch or take a short walk."],
+        ["Advance tomorrow", "Use the remaining time for homework, weak chapters or packing the next day's bag."]
+      ];
+      durations = [studyMinutes, breakMinutes, studyMinutes, breakMinutes, finalMinutes];
+    } else if (priority === "revision") {
+      selected = [
+        ["Active recall", "Close the book and write what you remember from the first priority topic."],
+        ["Recovery break", "Drink water and rest your eyes."],
+        ["Revision sprint", "Review mistakes, formulas or definitions, then attempt one mixed set."],
+        ["Reset break", "Walk, stretch or eat lightly."],
+        ["Final consolidation", "Make a compact recap and schedule weak topics for the next few days."]
+      ];
+      durations = [studyMinutes, breakMinutes, studyMinutes, breakMinutes, finalMinutes];
+    } else {
+      selected = [
+        ["Focused JEE class block", "Study the highest-value JEE topic and write one formula or concept summary."],
+        ["Recovery break", "Drink water, stretch and leave the desk."],
+        ["Problem-solving block", "Attempt progressively harder JEE questions without using solutions immediately."],
+        ["Reset break", "Eat or walk so the next block is not rushed."],
+        ["School and doubt buffer", "Finish urgent homework or record and solve the doubts found today."]
+      ];
+      durations = [studyMinutes, breakMinutes, studyMinutes, breakMinutes, finalMinutes];
+    }
+  } else {
+    const firstMinute = Math.max(30, Math.min(rescueTime * 0.55, rescueTime - 15));
+    const breakMinute = Math.max(5, Math.round(rescueTime * 0.08 / 5) * 5);
+    const remaining = rescueTime - firstMinute - breakMinute;
+    const plans = {
+      school: [
+        ["Start with the deadline", "Complete one urgent homework or revision task first. Use notes only after 10 minutes of trying."],
+        ["Quick recovery", "Drink water, stretch, and look away from screens."],
+        ["Finish or submit", "Complete corrections, pack the required books, and write tomorrow's first task on paper."]
+      ],
+      jee: [
+        ["Solve one weak topic", "Open the JEE topic you are weakest in and attempt 3–5 focused questions without notes."],
+        ["Correct the mistakes", "Check solutions, mark the exact mistake, and write one short rule to remember."],
+        ["Lock the progress", "Solve one final question and make a two-minute recap for tomorrow."]
+      ],
+      revision: [
+        ["Recall first", "Cover the notes and write down everything you remember from one topic."],
+        ["Check the gaps", "Compare with notes and mark weak ideas rather than rereading passively."],
+        ["Test yourself", "Answer five questions or explain the topic aloud from memory."]
+      ],
+      extra: [
+        ["Use the free slot wisely", "Replace a missing JEE class with one difficult topic, or finish the most urgent school task."],
+        ["Reset your energy", "Take 10 minutes away from screens and reset your desk."],
+        ["Advance the week", "Finish pending work, practice weak questions, or prepare tomorrow's materials."]
+      ],
+      health: [
+        ["Recover first", "Eat something light, hydrate, and take 10 minutes away from study and screens."],
+        ["Gentle reset", "Do slow stretching or take a quiet walk. Stop immediately if anything hurts."],
+        ["Safe mini-task", "Complete only the most urgent 20-minute task, then protect sleep."]
+      ],
+      chores: [
+        ["Do the fastest chore", "Water the plants, collect clothes, or start washing—choose the one that blocks tomorrow."],
+        ["Clean reset", "Put the room and school bag back in order for five minutes."],
+        ["Return to priority", "Use the remaining time for the most important school task."]
+      ]
+    };
+    selected = plans[priority];
+    durations = [firstMinute, breakMinute, remaining];
+  }
+
   let cursorTime = new Date(start);
   const steps = selected.map((step, index) => {
     const finish = new Date(cursorTime.getTime() + durations[index] * 60000);
@@ -487,7 +560,14 @@ function createRescuePlan() {
     return result;
   }).join("");
 
-  const reasonText = reason ? `Because: “${escapeRescueText(reason)}”` : "A fresh plan based on today's changes.";
+  const statusText = classStatus === "leave"
+    ? "Vedantu / class leave"
+    : classStatus === "canceled"
+      ? "Vedantu class canceled"
+      : "Vedantu classes running";
+  const reasonText = reason
+    ? `Because: “${escapeRescueText(reason)}” · ${statusText}`
+    : `A fresh plan based on today's changes. · ${statusText}`;
   rescueResult.innerHTML = `
     <div class="rescue-plan">
       <div class="rescue-plan-head"><h3>Your rescue plan</h3><span>${rescueTime} MINUTES</span></div>
