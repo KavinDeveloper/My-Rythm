@@ -16,6 +16,50 @@ body {
   color: var(--cream);
   font-family: "Manrope", sans-serif;
   cursor: none;
+  transition: background .8s ease, color .8s ease;
+}
+body.theme-diwali {
+  --ink: #160918;
+  --violet: #ffb347;
+  --pink: #ff5c7a;
+  --mint: #ffd700;
+  --gold: #fff3b0;
+  background:
+    radial-gradient(circle at 12% 18%, rgba(255,215,0,.12), transparent 18rem),
+    radial-gradient(circle at 82% 10%, rgba(255,92,122,.12), transparent 22rem),
+    var(--ink);
+}
+body.theme-christmas {
+  --ink: #091812;
+  --violet: #a6d8c7;
+  --pink: #ff8f8f;
+  --mint: #fff4d6;
+}
+body.theme-halloween {
+  --ink: #171126;
+  --violet: #a77cff;
+  --pink: #ff9d3d;
+  --mint: #fff0b8;
+}
+body.theme-holi {
+  --ink: #120c24;
+  --violet: #9a82ff;
+  --pink: #ff70a6;
+  --mint: #70c8ff;
+  --gold: #f6d86b;
+}
+body.theme-new-year {
+  --ink: #090d18;
+  --violet: #9a82ff;
+  --pink: #fff4b8;
+  --mint: #a6d8c7;
+}
+body.theme-republic-day,
+body.theme-independence-day {
+  --ink: #09131b;
+  --violet: #138808;
+  --pink: #ff9933;
+  --mint: #ffffff;
 }
 .welcome-lock { overflow: hidden; }
 button, a { cursor: none; }

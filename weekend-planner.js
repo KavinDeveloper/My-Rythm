@@ -166,6 +166,46 @@ function localDateKey(date = new Date()) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 
+function dateFromParts(year, month, day) {
+  return new Date(year, month - 1, day);
+}
+
+const eventThemes = [
+  { id: "new-year", name: "New Year", start: [2026, 12, 29], end: [2027, 1, 3], colors: ["#fff4b8", "#9a82ff", "#ff9fc3", "#a6d8c7", "#ffffff"], root: 174.61, notes: [1, 1.125, 1.25, 1.3333, 1.5], confettiShape: "spark" },
+  { id: "diwali", name: "Diwali", start: [2026, 10, 31], end: [2026, 11, 10], colors: ["#ffd700", "#ff8c42", "#ff5c7a", "#fff3b0", "#a6d8c7"], root: 196, notes: [1, 1.2, 1.25, 1.5, 1.6667], confettiShape: "spark" },
+  { id: "christmas", name: "Christmas", start: [2026, 12, 20], end: [2026, 12, 26], colors: ["#ff8f8f", "#a6d8c7", "#fff4d6", "#e5ca7a", "#ffffff"], root: 261.63, notes: [1, 1.125, 1.25, 1.3333, 1.5], confettiShape: "paper" },
+  { id: "halloween", name: "Halloween", start: [2026, 10, 25], end: [2026, 10, 31], colors: ["#ff9d3d", "#a77cff", "#fff0b8", "#ff6b6b", "#20222f"], root: 146.83, notes: [1, 1.1892, 1.4142, 1.5874, 1.6818], confettiShape: "bat" },
+  { id: "holi", name: "Holi", start: [2027, 3, 1], end: [2027, 3, 5], colors: ["#ff9fc3", "#9a82ff", "#a6d8c7", "#e5ca7a", "#70c8ff"], root: 220, notes: [1, 1.125, 1.3333, 1.5, 2], confettiShape: "powder" },
+  { id: "republic-day", name: "Republic Day", start: [2027, 1, 24], end: [2027, 1, 26], colors: ["#ff9933", "#ffffff", "#138808", "#9a82ff", "#e5ca7a"], root: 174.61, notes: [1, 1.25, 1.3333, 1.5, 1.875], confettiShape: "paper" },
+  { id: "independence-day", name: "Independence Day", start: [2027, 8, 13], end: [2027, 8, 15], colors: ["#ff9933", "#ffffff", "#138808", "#9a82ff", "#e5ca7a"], root: 174.61, notes: [1, 1.25, 1.3333, 1.5, 1.875], confettiShape: "paper" }
+];
+
+let activeEventTheme = null;
+
+function getEventTheme(date = new Date()) {
+  const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  return eventThemes.find((theme) => {
+    const start = dateFromParts(...theme.start);
+    const end = dateFromParts(...theme.end);
+    end.setHours(23, 59, 59, 999);
+    return dateOnly >= start && dateOnly <= end;
+  }) || null;
+}
+
+function applyEventTheme() {
+  activeEventTheme = getEventTheme();
+  document.body.classList.remove("theme-diwali", "theme-christmas", "theme-holi", "theme-halloween", "theme-new-year", "theme-republic-day", "theme-independence-day");
+  if (!activeEventTheme) {
+    document.documentElement.style.removeProperty("--event-accent");
+    document.querySelector("#eventThemeLabel")?.remove();
+    return;
+  }
+  document.body.classList.add(`theme-${activeEventTheme.id}`);
+  document.documentElement.style.setProperty("--event-accent", activeEventTheme.colors[0]);
+}
+
+applyEventTheme();
+
 function quoteIndexForToday() {
   const dateKey = localDateKey();
   let hash = 0;
@@ -259,7 +299,8 @@ function selectCalendarDay(date, scrollToSchedule = false) {
 
 function renderCalendar() {
   const todayKey = localDateKey();
-  document.querySelector("#weekLabel").textContent = `WEEK OF ${formatWeekRange(calendarWeekStart)}`;
+  const eventPrefix = activeEventTheme ? `${activeEventTheme.name.toUpperCase()} · ` : "";
+  document.querySelector("#weekLabel").textContent = `${eventPrefix}WEEK OF ${formatWeekRange(calendarWeekStart)}`;
   const daysContainer = document.querySelector("#weekDays");
   daysContainer.innerHTML = "";
   for (let index = 0; index < 7; index += 1) {
@@ -338,8 +379,10 @@ function celebrateTask(row) {
   const button = row.querySelector(".task-check");
   const rect = button.getBoundingClientRect();
   const colors = ["#9a82ff", "#ff9fc3", "#a6d8c7", "#e5ca7a", "#eeeadd"];
+  playCelebrationSound("task");
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
+  const themeColors = activeEventTheme?.colors || colors;
   for (let index = 0; index < 12; index += 1) {
     const particle = document.createElement("i");
     const angle = (Math.PI * 2 * index) / 12;
@@ -347,7 +390,7 @@ function celebrateTask(row) {
     particle.className = "completion-particle";
     particle.style.left = `${rect.left + rect.width / 2}px`;
     particle.style.top = `${rect.top + rect.height / 2}px`;
-    particle.style.background = colors[index % colors.length];
+    particle.style.background = themeColors[index % themeColors.length];
     particle.style.setProperty("--particle-x", `${Math.cos(angle) * distance}px`);
     particle.style.setProperty("--particle-y", `${Math.sin(angle) * distance}px`);
     document.body.appendChild(particle);
@@ -356,8 +399,9 @@ function celebrateTask(row) {
 }
 
 function celebrateDay() {
+  playCelebrationSound("day");
   if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    const colors = ["#9a82ff", "#ff9fc3", "#a6d8c7", "#e5ca7a", "#eeeadd"];
+    const colors = activeEventTheme?.colors || ["#9a82ff", "#ff9fc3", "#a6d8c7", "#e5ca7a", "#eeeadd"];
     for (let index = 0; index < 54; index += 1) {
       const confetti = document.createElement("i");
       confetti.className = "day-confetti";
@@ -398,8 +442,9 @@ function celebrateWeek() {
   }
 
   localStorage.setItem(celebrationKey, "done");
+  playCelebrationSound("week");
   if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    const colors = ["#9a82ff", "#ff9fc3", "#a6d8c7", "#e5ca7a", "#eeeadd"];
+    const colors = activeEventTheme?.colors || ["#9a82ff", "#ff9fc3", "#a6d8c7", "#e5ca7a", "#eeeadd"];
     for (let index = 0; index < 90; index += 1) {
       const confetti = document.createElement("i");
       confetti.className = "day-confetti";
@@ -445,6 +490,43 @@ function updateProgress(celebrate = false) {
   }
   const streak = calculateRhythmStreak();
   progressText.textContent = `${percent}% complete${streak ? ` • ${streak} day streak` : ""}`;
+}
+
+let celebrationContext = null;
+
+function playCelebrationSound(kind = "task") {
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextClass) return;
+  celebrationContext ||= new AudioContextClass();
+  if (celebrationContext.state === "suspended") celebrationContext.resume();
+
+  const themeRoot = activeEventTheme?.root || 220;
+  const patterns = {
+    task: [themeRoot, themeRoot * 1.25],
+    day: [themeRoot, themeRoot * 1.25, themeRoot * 1.5, themeRoot * 2],
+    week: [themeRoot / 2, themeRoot * 0.75, themeRoot, themeRoot * 1.25, themeRoot * 1.5, themeRoot * 2]
+  };
+  const notes = patterns[kind] || patterns.task;
+  notes.forEach((frequency, index) => {
+    const start = celebrationContext.currentTime + index * (kind === "week" ? 0.09 : 0.06);
+    const oscillator = celebrationContext.createOscillator();
+    const overtone = celebrationContext.createOscillator();
+    const gain = celebrationContext.createGain();
+    oscillator.type = activeEventTheme?.id === "diwali" ? "triangle" : "sine";
+    overtone.type = "sine";
+    oscillator.frequency.setValueAtTime(frequency, start);
+    overtone.frequency.setValueAtTime(frequency * 2, start);
+    gain.gain.setValueAtTime(0.0001, start);
+    gain.gain.exponentialRampToValueAtTime(kind === "week" ? 0.07 : 0.045, start + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.48);
+    oscillator.connect(gain);
+    overtone.connect(gain);
+    gain.connect(celebrationContext.destination);
+    oscillator.start(start);
+    overtone.start(start);
+    oscillator.stop(start + 0.52);
+    overtone.stop(start + 0.52);
+  });
 }
 
 function updateLiveClock() {
@@ -535,8 +617,10 @@ const ambientMelodies = [
   { name: "Calm after effort", root: 174.61, notes: [1, 1.125, 1.3333, 1.5] }
 ];
 
-function todayMelodyIndex() {
-  return [...localDateKey()].reduce((total, character) => total + character.charCodeAt(0), 0) % ambientMelodies.length;
+function todayMelody() {
+  return activeEventTheme ?
+    { name: `${activeEventTheme.name} glow`, root: activeEventTheme.root, notes: activeEventTheme.notes } :
+    ambientMelodies[[...localDateKey()].reduce((total, character) => total + character.charCodeAt(0), 0) % ambientMelodies.length];
 }
 
 function createAmbientTone(frequency, duration = 9, volume = 0.018) {
@@ -579,7 +663,7 @@ function createAmbientTone(frequency, duration = 9, volume = 0.018) {
 
 function playAmbientPattern() {
   if (!ambientPlaying) return;
-  const melody = ambientMelodies[todayMelodyIndex()];
+  const melody = todayMelody();
   const step = Math.floor(ambientContext.currentTime / 5.2) % melody.notes.length;
   createAmbientTone(melody.root * melody.notes[step]);
 }
@@ -632,7 +716,7 @@ const musicSettings = document.querySelector("#musicSettings");
 const musicVolume = document.querySelector("#musicVolume");
 const musicMood = document.querySelector("#musicMood");
 
-musicMood.textContent = ambientMelodies[todayMelodyIndex()].name;
+musicMood.textContent = todayMelody().name;
 const savedVolume = Number(localStorage.getItem("my-rhythm-music-volume") ?? 55);
 musicVolume.value = String(savedVolume);
 
