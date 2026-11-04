@@ -91,7 +91,16 @@
         <h1>Rest. Train. Learn.<br><em>Come back stronger.</em></h1>
       </div>
 
-      <div class="day-switcher" role="tablist" aria-label="Choose weekend day">
+      <section class="week-calendar" aria-label="Weekly calendar">
+        <button class="week-nav" id="previousWeek" type="button" aria-label="Previous week">‹</button>
+        <div class="week-calendar-main">
+          <p id="weekLabel"></p>
+          <div class="week-days" id="weekDays"></div>
+        </div>
+        <button class="week-nav" id="nextWeek" type="button" aria-label="Next week">›</button>
+      </section>
+
+      <div class="day-switcher" role="tablist" aria-label="Choose schedule">
         <button class="day-tab active" data-day="saturday" role="tab" aria-selected="true">SATURDAY</button>
         <button class="day-tab" data-day="sunday" role="tab" aria-selected="false">SUNDAY</button>
         <button class="day-tab" data-day="weekday" role="tab" aria-selected="false">WEEKDAYS</button>

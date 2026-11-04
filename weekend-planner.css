@@ -257,6 +257,66 @@ button, a { cursor: none; }
 h1 { margin: 0; font-size: clamp(58px,8vw,112px); line-height: .88; letter-spacing: -.065em; font-weight: 300; }
 h1 em { color: var(--violet); font-family: "Playfair Display", serif; }
 
+.week-calendar {
+  position: absolute;
+  left: 50%;
+  bottom: 122px;
+  width: min(620px, calc(100vw - 48px));
+  transform: translateX(-50%);
+  display: grid;
+  grid-template-columns: 36px 1fr 36px;
+  align-items: end;
+  gap: 10px;
+  z-index: 50;
+}
+.week-calendar-main { min-width: 0; }
+.week-calendar-main > p {
+  margin: 0 0 8px;
+  text-align: center;
+  font: 8px "DM Mono", monospace;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--mint);
+}
+.week-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
+.week-day {
+  min-width: 0;
+  height: 58px;
+  border: 1px solid rgba(238,234,221,.08);
+  border-radius: 8px;
+  background: rgba(9,11,22,.48);
+  color: var(--cream);
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 4px;
+  opacity: .66;
+}
+.week-day:hover { border-color: rgba(255,159,195,.55); opacity: 1; }
+.week-day.active { border-color: var(--violet); background: rgba(154,130,255,.12); opacity: 1; }
+.week-day.today { border-color: var(--pink); }
+.week-day.completed::after {
+  content: "✓";
+  position: absolute;
+  margin-top: 46px;
+  color: var(--pink);
+  font-size: 7px;
+}
+.week-day span { font: 7px "DM Mono", monospace; letter-spacing: .08em; text-transform: uppercase; }
+.week-day strong { font: 14px "DM Mono", monospace; }
+.week-day { position: relative; }
+.week-nav {
+  width: 36px;
+  height: 36px;
+  margin-bottom: 11px;
+  border: 1px solid rgba(238,234,221,.09);
+  border-radius: 50%;
+  background: rgba(9,11,22,.58);
+  color: var(--cream);
+  font-size: 20px;
+}
+.week-nav:hover { border-color: var(--pink); color: var(--pink); }
+
 .day-switcher {
   position: absolute; bottom: 52px; left: 50%; transform: translateX(-50%);
   display: flex; gap: 4px; padding: 4px; border: 1px solid rgba(238,234,221,.09); border-radius: 999px;
@@ -361,6 +421,11 @@ h1 em { color: var(--violet); font-family: "Playfair Display", serif; }
 .rescue-step strong { display: block; margin-bottom: 4px; font-size: 13px; font-weight: 500; }
 .rescue-step p { margin: 0; font-size: 11px; line-height: 1.55; opacity: .5; }
 
+
+@media (max-width: 900px) {
+  .week-calendar { bottom: 132px; width: calc(100vw - 32px); }
+  .week-day { height: 54px; }
+}
 
 @media (max-width: 900px) {
   body { cursor: auto; }

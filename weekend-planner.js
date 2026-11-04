@@ -215,6 +215,78 @@ window.addEventListener("touchmove", (event) => {
 }, { passive: true });
 
 let currentDay = "saturday";
+let selectedCalendarDate = new Date();
+let calendarWeekStart = startOfWeek(new Date());
+
+function startOfWeek(date) {
+  const start = new Date(date);
+  start.setHours(0, 0, 0, 0);
+  const mondayOffset = (start.getDay() + 6) % 7;
+  start.setDate(start.getDate() - mondayOffset);
+  return start;
+}
+
+function scheduleForDate(date) {
+  const weekday = date.getDay();
+  if (weekday === 0) return "sunday";
+  if (weekday === 5) return "friday";
+  if (weekday === 6) return "saturday";
+  return "weekday";
+}
+
+function formatWeekRange(start) {
+  const end = new Date(start);
+  end.setDate(end.getDate() + 6);
+  const startLabel = start.toLocaleDateString([], { month: "short", day: "numeric" });
+  const endLabel = end.toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" });
+  return `${startLabel} — ${endLabel}`;
+}
+
+function selectCalendarDay(date, scrollToSchedule = false) {
+  selectedCalendarDate = new Date(date);
+  currentDay = scheduleForDate(selectedCalendarDate);
+  dayTabs.forEach((item) => {
+    const active = item.dataset.day === currentDay;
+    item.classList.toggle("active", active);
+    item.setAttribute("aria-selected", String(active));
+  });
+  dayLabel.textContent = `${selectedCalendarDate.toLocaleDateString([], { weekday: "long" }).toUpperCase()} / ${selectedCalendarDate.toLocaleDateString([], { day: "2-digit", month: "short" }).toUpperCase()}`;
+  renderSchedule();
+  renderRules();
+  renderCalendar();
+  if (scrollToSchedule) document.querySelector("#schedule")?.scrollIntoView({ behavior: "smooth" });
+}
+
+function renderCalendar() {
+  const todayKey = localDateKey();
+  document.querySelector("#weekLabel").textContent = `WEEK OF ${formatWeekRange(calendarWeekStart)}`;
+  const daysContainer = document.querySelector("#weekDays");
+  daysContainer.innerHTML = "";
+  for (let index = 0; index < 7; index += 1) {
+    const date = new Date(calendarWeekStart);
+    date.setDate(date.getDate() + index);
+    const dateKey = localDateKey(date);
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "week-day";
+    if (localStorage.getItem(`my-rhythm-completed-${dateKey}`) === "done") button.classList.add("completed");
+    if (dateKey === todayKey) button.classList.add("today");
+    if (dateKey === localDateKey(selectedCalendarDate)) button.classList.add("active");
+    button.setAttribute("aria-label", date.toLocaleDateString([], { weekday: "long", month: "long", day: "numeric", year: "numeric" }));
+    button.innerHTML = `<span>${date.toLocaleDateString([], { weekday: "short" })}</span><strong>${date.getDate()}</strong>`;
+    button.addEventListener("click", () => selectCalendarDay(date, true));
+    daysContainer.appendChild(button);
+  }
+}
+
+document.querySelector("#previousWeek")?.addEventListener("click", () => {
+  calendarWeekStart.setDate(calendarWeekStart.getDate() - 7);
+  renderCalendar();
+});
+document.querySelector("#nextWeek")?.addEventListener("click", () => {
+  calendarWeekStart.setDate(calendarWeekStart.getDate() + 7);
+  renderCalendar();
+});
 
 window.addEventListener("mousemove", (event) => {
   cursor.style.left = `${event.clientX}px`;
@@ -249,21 +321,124 @@ function renderSchedule() {
       row.classList.toggle("done");
       const done = row.classList.contains("done");
       localStorage.setItem(storageKey(currentDay, index), done ? "done" : "");
-      updateProgress();
+      if (done) celebrateTask(row);
+      updateProgress(done);
     });
     timeline.appendChild(row);
   });
   updateProgress();
 }
 
-function updateProgress() {
+function celebrateTask(row) {
+  row.classList.remove("just-completed");
+  void row.offsetWidth;
+  row.classList.add("just-completed");
+  window.setTimeout(() => row.classList.remove("just-completed"), 700);
+
+  const button = row.querySelector(".task-check");
+  const rect = button.getBoundingClientRect();
+  const colors = ["#9a82ff", "#ff9fc3", "#a6d8c7", "#e5ca7a", "#eeeadd"];
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+  for (let index = 0; index < 12; index += 1) {
+    const particle = document.createElement("i");
+    const angle = (Math.PI * 2 * index) / 12;
+    const distance = 42 + Math.random() * 28;
+    particle.className = "completion-particle";
+    particle.style.left = `${rect.left + rect.width / 2}px`;
+    particle.style.top = `${rect.top + rect.height / 2}px`;
+    particle.style.background = colors[index % colors.length];
+    particle.style.setProperty("--particle-x", `${Math.cos(angle) * distance}px`);
+    particle.style.setProperty("--particle-y", `${Math.sin(angle) * distance}px`);
+    document.body.appendChild(particle);
+    particle.addEventListener("animationend", () => particle.remove(), { once: true });
+  }
+}
+
+function celebrateDay() {
+  if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    const colors = ["#9a82ff", "#ff9fc3", "#a6d8c7", "#e5ca7a", "#eeeadd"];
+    for (let index = 0; index < 54; index += 1) {
+      const confetti = document.createElement("i");
+      confetti.className = "day-confetti";
+      confetti.style.left = `${Math.random() * 100}vw`;
+      confetti.style.background = colors[index % colors.length];
+      confetti.style.setProperty("--confetti-delay", `${Math.random() * .45}s`);
+      confetti.style.setProperty("--confetti-duration", `${2.4 + Math.random() * 1.8}s`);
+      confetti.style.setProperty("--confetti-drift", `${-100 + Math.random() * 200}px`);
+      document.body.appendChild(confetti);
+      confetti.addEventListener("animationend", () => confetti.remove(), { once: true });
+    }
+  }
+
+  const toast = document.createElement("div");
+  toast.className = "completion-toast";
+  toast.setAttribute("role", "status");
+  toast.innerHTML = `<span>Rhythm complete</span><strong>Day finished beautifully.</strong>`;
+  document.body.appendChild(toast);
+  window.setTimeout(() => toast.classList.add("visible"), 20);
+  window.setTimeout(() => {
+    toast.classList.remove("visible");
+    window.setTimeout(() => toast.remove(), 500);
+  }, 3600);
+}
+
+function getWeekStartKey(date = calendarWeekStart) {
+  return localDateKey(startOfWeek(date));
+}
+
+function celebrateWeek() {
+  const celebrationKey = `my-rhythm-week-celebrated-${getWeekStartKey()}`;
+  if (localStorage.getItem(celebrationKey) === "done") return;
+
+  for (let index = 0; index < 7; index += 1) {
+    const date = new Date(calendarWeekStart);
+    date.setDate(date.getDate() + index);
+    if (localStorage.getItem(`my-rhythm-completed-${localDateKey(date)}`) !== "done") return;
+  }
+
+  localStorage.setItem(celebrationKey, "done");
+  if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    const colors = ["#9a82ff", "#ff9fc3", "#a6d8c7", "#e5ca7a", "#eeeadd"];
+    for (let index = 0; index < 90; index += 1) {
+      const confetti = document.createElement("i");
+      confetti.className = "day-confetti";
+      confetti.style.left = `${Math.random() * 100}vw`;
+      confetti.style.background = colors[index % colors.length];
+      confetti.style.setProperty("--confetti-delay", `${Math.random() * .4}s`);
+      confetti.style.setProperty("--confetti-duration", `${3 + Math.random() * 2}s`);
+      confetti.style.setProperty("--confetti-drift", `${-140 + Math.random() * 280}px`);
+      document.body.appendChild(confetti);
+      confetti.addEventListener("animationend", () => confetti.remove(), { once: true });
+    }
+  }
+
+  const existingToast = document.querySelector(".completion-toast");
+  existingToast?.remove();
+  const toast = document.createElement("div");
+  toast.className = "completion-toast";
+  toast.setAttribute("role", "status");
+  toast.innerHTML = `<span>Week complete</span><strong>You showed up every day. Keep becoming stronger.</strong>`;
+  document.body.appendChild(toast);
+  window.setTimeout(() => toast.classList.add("visible"), 20);
+  window.setTimeout(() => {
+    toast.classList.remove("visible");
+    window.setTimeout(() => toast.remove(), 500);
+  }, 5000);
+}
+
+function updateProgress(celebrate = false) {
   const doneCount = [...document.querySelectorAll(".task-row.done")].length;
   const total = schedules[currentDay].length;
   const percent = Math.round(doneCount / total * 100);
   progress.style.width = `${percent}%`;
   if (percent === 100) {
-    const today = localDateKey();
-    localStorage.setItem(`my-rhythm-completed-${today}`, "done");
+    localStorage.setItem(`my-rhythm-completed-${localDateKey(selectedCalendarDate)}`, "done");
+    renderCalendar();
+    if (celebrate) {
+      celebrateDay();
+      celebrateWeek();
+    }
   }
   const streak = calculateRhythmStreak();
   progressText.textContent = `${percent}% complete${streak ? ` • ${streak} day streak` : ""}`;
@@ -754,5 +929,5 @@ function drawSky() {
 window.addEventListener("resize", resizeSky);
 resizeSky();
 drawSky();
-renderSchedule();
-renderRules();
+selectCalendarDay(new Date());
+renderCalendar();
