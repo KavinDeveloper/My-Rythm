@@ -166,6 +166,46 @@ function localDateKey(date = new Date()) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 
+function dateFromParts(year, month, day) {
+  return new Date(year, month - 1, day);
+}
+
+const eventThemes = [
+  { id: "new-year", name: "New Year", start: [2026, 12, 29], end: [2027, 1, 3], colors: ["#fff4b8", "#9a82ff", "#ff9fc3", "#a6d8c7", "#ffffff"], root: 174.61, notes: [1, 1.125, 1.25, 1.3333, 1.5], confettiShape: "spark" },
+  { id: "diwali", name: "Diwali", start: [2026, 10, 31], end: [2026, 11, 10], colors: ["#ffd700", "#ff8c42", "#ff5c7a", "#fff3b0", "#a6d8c7"], root: 196, notes: [1, 1.2, 1.25, 1.5, 1.6667], confettiShape: "spark" },
+  { id: "christmas", name: "Christmas", start: [2026, 12, 20], end: [2026, 12, 26], colors: ["#ff8f8f", "#a6d8c7", "#fff4d6", "#e5ca7a", "#ffffff"], root: 261.63, notes: [1, 1.125, 1.25, 1.3333, 1.5], confettiShape: "paper" },
+  { id: "halloween", name: "Halloween", start: [2026, 10, 25], end: [2026, 10, 31], colors: ["#ff9d3d", "#a77cff", "#fff0b8", "#ff6b6b", "#20222f"], root: 146.83, notes: [1, 1.1892, 1.4142, 1.5874, 1.6818], confettiShape: "bat" },
+  { id: "holi", name: "Holi", start: [2027, 3, 1], end: [2027, 3, 5], colors: ["#ff9fc3", "#9a82ff", "#a6d8c7", "#e5ca7a", "#70c8ff"], root: 220, notes: [1, 1.125, 1.3333, 1.5, 2], confettiShape: "powder" },
+  { id: "republic-day", name: "Republic Day", start: [2027, 1, 24], end: [2027, 1, 26], colors: ["#ff9933", "#ffffff", "#138808", "#9a82ff", "#e5ca7a"], root: 174.61, notes: [1, 1.25, 1.3333, 1.5, 1.875], confettiShape: "paper" },
+  { id: "independence-day", name: "Independence Day", start: [2027, 8, 13], end: [2027, 8, 15], colors: ["#ff9933", "#ffffff", "#138808", "#9a82ff", "#e5ca7a"], root: 174.61, notes: [1, 1.25, 1.3333, 1.5, 1.875], confettiShape: "paper" }
+];
+
+let activeEventTheme = null;
+
+function getEventTheme(date = new Date()) {
+  const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  return eventThemes.find((theme) => {
+    const start = dateFromParts(...theme.start);
+    const end = dateFromParts(...theme.end);
+    end.setHours(23, 59, 59, 999);
+    return dateOnly >= start && dateOnly <= end;
+  }) || null;
+}
+
+function applyEventTheme() {
+  activeEventTheme = getEventTheme();
+  document.body.classList.remove("theme-diwali", "theme-christmas", "theme-holi", "theme-halloween", "theme-new-year", "theme-republic-day", "theme-independence-day");
+  if (!activeEventTheme) {
+    document.documentElement.style.removeProperty("--event-accent");
+    document.querySelector("#eventThemeLabel")?.remove();
+    return;
+  }
+  document.body.classList.add(`theme-${activeEventTheme.id}`);
+  document.documentElement.style.setProperty("--event-accent", activeEventTheme.colors[0]);
+}
+
+applyEventTheme();
+
 function quoteIndexForToday() {
   const dateKey = localDateKey();
   let hash = 0;
@@ -215,6 +255,79 @@ window.addEventListener("touchmove", (event) => {
 }, { passive: true });
 
 let currentDay = "saturday";
+let selectedCalendarDate = new Date();
+let calendarWeekStart = startOfWeek(new Date());
+
+function startOfWeek(date) {
+  const start = new Date(date);
+  start.setHours(0, 0, 0, 0);
+  const mondayOffset = (start.getDay() + 6) % 7;
+  start.setDate(start.getDate() - mondayOffset);
+  return start;
+}
+
+function scheduleForDate(date) {
+  const weekday = date.getDay();
+  if (weekday === 0) return "sunday";
+  if (weekday === 5) return "friday";
+  if (weekday === 6) return "saturday";
+  return "weekday";
+}
+
+function formatWeekRange(start) {
+  const end = new Date(start);
+  end.setDate(end.getDate() + 6);
+  const startLabel = start.toLocaleDateString([], { month: "short", day: "numeric" });
+  const endLabel = end.toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" });
+  return `${startLabel} — ${endLabel}`;
+}
+
+function selectCalendarDay(date, scrollToSchedule = false) {
+  selectedCalendarDate = new Date(date);
+  currentDay = scheduleForDate(selectedCalendarDate);
+  dayTabs.forEach((item) => {
+    const active = item.dataset.day === currentDay;
+    item.classList.toggle("active", active);
+    item.setAttribute("aria-selected", String(active));
+  });
+  dayLabel.textContent = `${selectedCalendarDate.toLocaleDateString([], { weekday: "long" }).toUpperCase()} / ${selectedCalendarDate.toLocaleDateString([], { day: "2-digit", month: "short" }).toUpperCase()}`;
+  renderSchedule();
+  renderRules();
+  renderCalendar();
+  if (scrollToSchedule) document.querySelector("#schedule")?.scrollIntoView({ behavior: "smooth" });
+}
+
+function renderCalendar() {
+  const todayKey = localDateKey();
+  const eventPrefix = activeEventTheme ? `${activeEventTheme.name.toUpperCase()} · ` : "";
+  document.querySelector("#weekLabel").textContent = `${eventPrefix}WEEK OF ${formatWeekRange(calendarWeekStart)}`;
+  const daysContainer = document.querySelector("#weekDays");
+  daysContainer.innerHTML = "";
+  for (let index = 0; index < 7; index += 1) {
+    const date = new Date(calendarWeekStart);
+    date.setDate(date.getDate() + index);
+    const dateKey = localDateKey(date);
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "week-day";
+    if (localStorage.getItem(`my-rhythm-completed-${dateKey}`) === "done") button.classList.add("completed");
+    if (dateKey === todayKey) button.classList.add("today");
+    if (dateKey === localDateKey(selectedCalendarDate)) button.classList.add("active");
+    button.setAttribute("aria-label", date.toLocaleDateString([], { weekday: "long", month: "long", day: "numeric", year: "numeric" }));
+    button.innerHTML = `<span>${date.toLocaleDateString([], { weekday: "short" })}</span><strong>${date.getDate()}</strong>`;
+    button.addEventListener("click", () => selectCalendarDay(date, true));
+    daysContainer.appendChild(button);
+  }
+}
+
+document.querySelector("#previousWeek")?.addEventListener("click", () => {
+  calendarWeekStart.setDate(calendarWeekStart.getDate() - 7);
+  renderCalendar();
+});
+document.querySelector("#nextWeek")?.addEventListener("click", () => {
+  calendarWeekStart.setDate(calendarWeekStart.getDate() + 7);
+  renderCalendar();
+});
 
 window.addEventListener("mousemove", (event) => {
   cursor.style.left = `${event.clientX}px`;
@@ -226,8 +339,127 @@ document.querySelectorAll("a, button").forEach((element) => {
 });
 
 function storageKey(day, index) {
-  return `weekend-plan-${day}-${index}`;
+  return `weekend-plan-${localDateKey(selectedCalendarDate)}-${day}-${index}`;
 }
+
+let rhythmAuth = null;
+let rhythmDb = null;
+let rhythmUser = null;
+let rhythmUnsubscribe = null;
+
+function isFirebaseConfigured() {
+  const config = window.MY_RHYTHM_FIREBASE_CONFIG;
+  return config && typeof firebase !== "undefined" && config.apiKey && config.projectId;
+}
+
+function initializeCloudSync() {
+  if (!isFirebaseConfigured()) {
+    document.querySelector("#authMessage").textContent = "Cloud sync is not configured yet. This device will continue using local progress.";
+    return;
+  }
+
+  if (!firebase.apps.length) firebase.initializeApp(window.MY_RHYTHM_FIREBASE_CONFIG);
+  rhythmAuth = firebase.auth();
+  rhythmDb = firebase.firestore();
+  rhythmAuth.onAuthStateChanged((user) => {
+    rhythmUser = user;
+    const name = document.querySelector("#accountName");
+    const signOutButton = document.querySelector("#authSignOut");
+    if (user) {
+      name.textContent = user.displayName || user.email?.split("@")[0] || "Signed in";
+      signOutButton.classList.add("visible");
+      document.querySelector("#authMessage").textContent = "Signed in. Your rhythm is syncing across devices.";
+      startCloudSnapshot();
+      saveRhythmToCloud();
+    } else {
+      name.textContent = "Sign in";
+      signOutButton.classList.remove("visible");
+      if (rhythmUnsubscribe) rhythmUnsubscribe();
+      rhythmUnsubscribe = null;
+    }
+  });
+}
+
+function collectSyncedRhythm() {
+  const state = {};
+  Object.keys(localStorage).forEach((key) => {
+    if (key.startsWith("weekend-plan-") || key.startsWith("my-rhythm-completed-") || key.startsWith("my-rhythm-music-usage-") || key.startsWith("my-rhythm-week-celebrated-") || key === "my-rhythm-music-volume" || key === "my-rhythm-rescue-plan") {
+      state[key] = localStorage.getItem(key);
+    }
+  });
+  return state;
+}
+
+async function saveRhythmToCloud() {
+  if (!rhythmUser || !rhythmDb) return;
+  await rhythmDb.collection("rhythm-users").doc(rhythmUser.uid).set({
+    state: collectSyncedRhythm(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  }, { merge: true });
+}
+
+function startCloudSnapshot() {
+  if (!rhythmUser || !rhythmDb) return;
+  if (rhythmUnsubscribe) rhythmUnsubscribe();
+  rhythmUnsubscribe = rhythmDb.collection("rhythm-users").doc(rhythmUser.uid).onSnapshot((snapshot) => {
+    const state = snapshot.data()?.state;
+    if (!state) return;
+    Object.entries(state).forEach(([key, value]) => {
+      if (value === null) localStorage.removeItem(key);
+      else localStorage.setItem(key, value);
+    });
+    renderCalendar();
+    renderSchedule();
+    renderRules();
+    updateMusicLimitUI?.();
+  });
+}
+
+const authScreen = document.querySelector("#authScreen");
+document.querySelector("#accountButton")?.addEventListener("click", () => {
+  authScreen.classList.add("open");
+  authScreen.setAttribute("aria-hidden", "false");
+});
+document.querySelector("#authClose")?.addEventListener("click", () => {
+  authScreen.classList.remove("open");
+  authScreen.setAttribute("aria-hidden", "true");
+});
+
+document.querySelector("#authSignIn")?.addEventListener("click", async () => {
+  if (!isFirebaseConfigured()) return;
+  try {
+    await rhythmAuth.signInWithEmailAndPassword(document.querySelector("#authEmail").value, document.querySelector("#authPassword").value);
+    authScreen.classList.remove("open");
+  } catch (error) {
+    document.querySelector("#authMessage").textContent = error.message;
+  }
+});
+
+document.querySelector("#authSignUp")?.addEventListener("click", async () => {
+  if (!isFirebaseConfigured()) return;
+  try {
+    await rhythmAuth.createUserWithEmailAndPassword(document.querySelector("#authEmail").value, document.querySelector("#authPassword").value);
+    authScreen.classList.remove("open");
+  } catch (error) {
+    document.querySelector("#authMessage").textContent = error.message;
+  }
+});
+
+document.querySelector("#authGoogle")?.addEventListener("click", async () => {
+  if (!isFirebaseConfigured()) return;
+  try {
+    await rhythmAuth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+    authScreen.classList.remove("open");
+  } catch (error) {
+    document.querySelector("#authMessage").textContent = error.message;
+  }
+});
+
+document.querySelector("#authSignOut")?.addEventListener("click", async () => {
+  if (rhythmAuth) await rhythmAuth.signOut();
+});
+
+initializeCloudSync();
 
 function renderSchedule() {
   timeline.innerHTML = "";
@@ -249,25 +481,183 @@ function renderSchedule() {
       row.classList.toggle("done");
       const done = row.classList.contains("done");
       localStorage.setItem(storageKey(currentDay, index), done ? "done" : "");
-      updateProgress();
+      if (done) celebrateTask(row);
+      updateProgress(done);
+      saveRhythmToCloud().catch(() => {});
     });
     timeline.appendChild(row);
   });
   updateProgress();
 }
 
-function updateProgress() {
+function celebrateTask(row) {
+  row.classList.remove("just-completed");
+  void row.offsetWidth;
+  row.classList.add("just-completed");
+  window.setTimeout(() => row.classList.remove("just-completed"), 700);
+
+  const button = row.querySelector(".task-check");
+  const rect = button.getBoundingClientRect();
+  const colors = ["#9a82ff", "#ff9fc3", "#a6d8c7", "#e5ca7a", "#eeeadd"];
+  playCelebrationSound("task");
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+  const themeColors = activeEventTheme?.colors || colors;
+  for (let index = 0; index < 12; index += 1) {
+    const particle = document.createElement("i");
+    const angle = (Math.PI * 2 * index) / 12;
+    const distance = 42 + Math.random() * 28;
+    particle.className = "completion-particle";
+    particle.style.left = `${rect.left + rect.width / 2}px`;
+    particle.style.top = `${rect.top + rect.height / 2}px`;
+    particle.style.background = themeColors[index % themeColors.length];
+    particle.style.setProperty("--particle-x", `${Math.cos(angle) * distance}px`);
+    particle.style.setProperty("--particle-y", `${Math.sin(angle) * distance}px`);
+    document.body.appendChild(particle);
+    particle.addEventListener("animationend", () => particle.remove(), { once: true });
+  }
+}
+
+function celebrateDay() {
+  playCelebrationSound("day");
+  if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    const colors = activeEventTheme?.colors || ["#9a82ff", "#ff9fc3", "#a6d8c7", "#e5ca7a", "#eeeadd"];
+    for (let index = 0; index < 54; index += 1) {
+      const confetti = document.createElement("i");
+      confetti.className = "day-confetti";
+      confetti.style.left = `${Math.random() * 100}vw`;
+      confetti.style.background = colors[index % colors.length];
+      confetti.style.setProperty("--confetti-delay", `${Math.random() * .45}s`);
+      confetti.style.setProperty("--confetti-duration", `${2.4 + Math.random() * 1.8}s`);
+      confetti.style.setProperty("--confetti-drift", `${-100 + Math.random() * 200}px`);
+      document.body.appendChild(confetti);
+      confetti.addEventListener("animationend", () => confetti.remove(), { once: true });
+    }
+  }
+
+  const toast = document.createElement("div");
+  toast.className = "completion-toast";
+  toast.setAttribute("role", "status");
+  toast.innerHTML = `<span>Rhythm complete</span><strong>Day finished beautifully.</strong>`;
+  document.body.appendChild(toast);
+  window.setTimeout(() => toast.classList.add("visible"), 20);
+  window.setTimeout(() => {
+    toast.classList.remove("visible");
+    window.setTimeout(() => toast.remove(), 500);
+  }, 3600);
+}
+
+function getWeekStartKey(date = calendarWeekStart) {
+  return localDateKey(startOfWeek(date));
+}
+
+function celebrateWeek() {
+  const celebrationKey = `my-rhythm-week-celebrated-${getWeekStartKey()}`;
+  if (localStorage.getItem(celebrationKey) === "done") return;
+
+  for (let index = 0; index < 7; index += 1) {
+    const date = new Date(calendarWeekStart);
+    date.setDate(date.getDate() + index);
+    if (localStorage.getItem(`my-rhythm-completed-${localDateKey(date)}`) !== "done") return;
+  }
+
+  localStorage.setItem(celebrationKey, "done");
+  playCelebrationSound("week");
+  if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    const colors = activeEventTheme?.colors || ["#9a82ff", "#ff9fc3", "#a6d8c7", "#e5ca7a", "#eeeadd"];
+    for (let index = 0; index < 90; index += 1) {
+      const confetti = document.createElement("i");
+      confetti.className = "day-confetti";
+      confetti.style.left = `${Math.random() * 100}vw`;
+      confetti.style.background = colors[index % colors.length];
+      confetti.style.setProperty("--confetti-delay", `${Math.random() * .4}s`);
+      confetti.style.setProperty("--confetti-duration", `${3 + Math.random() * 2}s`);
+      confetti.style.setProperty("--confetti-drift", `${-140 + Math.random() * 280}px`);
+      document.body.appendChild(confetti);
+      confetti.addEventListener("animationend", () => confetti.remove(), { once: true });
+    }
+  }
+
+  const existingToast = document.querySelector(".completion-toast");
+  existingToast?.remove();
+  const toast = document.createElement("div");
+  toast.className = "completion-toast";
+  toast.setAttribute("role", "status");
+  toast.innerHTML = `<span>Week complete</span><strong>You showed up every day. Keep becoming stronger.</strong>`;
+  document.body.appendChild(toast);
+  window.setTimeout(() => toast.classList.add("visible"), 20);
+  window.setTimeout(() => {
+    toast.classList.remove("visible");
+    window.setTimeout(() => toast.remove(), 500);
+  }, 5000);
+}
+
+function updateProgress(celebrate = false) {
   const doneCount = [...document.querySelectorAll(".task-row.done")].length;
   const total = schedules[currentDay].length;
   const percent = Math.round(doneCount / total * 100);
   progress.style.width = `${percent}%`;
   if (percent === 100) {
-    const today = localDateKey();
-    localStorage.setItem(`my-rhythm-completed-${today}`, "done");
+    localStorage.setItem(`my-rhythm-completed-${localDateKey(selectedCalendarDate)}`, "done");
+    renderCalendar();
+    if (celebrate) {
+      celebrateDay();
+      celebrateWeek();
+    }
+  } else {
+    localStorage.removeItem(`my-rhythm-completed-${localDateKey(selectedCalendarDate)}`);
+    renderCalendar();
   }
   const streak = calculateRhythmStreak();
   progressText.textContent = `${percent}% complete${streak ? ` • ${streak} day streak` : ""}`;
 }
+
+let celebrationContext = null;
+
+function playCelebrationSound(kind = "task") {
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextClass) return;
+  celebrationContext ||= new AudioContextClass();
+  if (celebrationContext.state === "suspended") celebrationContext.resume();
+
+  const themeRoot = activeEventTheme?.root || 220;
+  const patterns = {
+    task: [themeRoot, themeRoot * 1.25],
+    day: [themeRoot, themeRoot * 1.25, themeRoot * 1.5, themeRoot * 2],
+    week: [themeRoot / 2, themeRoot * 0.75, themeRoot, themeRoot * 1.25, themeRoot * 1.5, themeRoot * 2]
+  };
+  const notes = patterns[kind] || patterns.task;
+  notes.forEach((frequency, index) => {
+    const start = celebrationContext.currentTime + index * (kind === "week" ? 0.09 : 0.06);
+    const oscillator = celebrationContext.createOscillator();
+    const overtone = celebrationContext.createOscillator();
+    const gain = celebrationContext.createGain();
+    oscillator.type = activeEventTheme?.id === "diwali" ? "triangle" : "sine";
+    overtone.type = "sine";
+    oscillator.frequency.setValueAtTime(frequency, start);
+    overtone.frequency.setValueAtTime(frequency * 2, start);
+    gain.gain.setValueAtTime(0.0001, start);
+    gain.gain.exponentialRampToValueAtTime(kind === "week" ? 0.07 : 0.045, start + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.48);
+    oscillator.connect(gain);
+    overtone.connect(gain);
+    gain.connect(celebrationContext.destination);
+    oscillator.start(start);
+    overtone.start(start);
+    oscillator.stop(start + 0.52);
+    overtone.stop(start + 0.52);
+  });
+}
+
+function updateLiveClock() {
+  const clock = document.querySelector("#liveClock");
+  if (!clock) return;
+  const now = new Date();
+  clock.dateTime = now.toISOString();
+  clock.textContent = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
+}
+updateLiveClock();
+window.setInterval(updateLiveClock, 1000);
 
 function calculateRhythmStreak() {
   let streak = 0;
@@ -299,22 +689,37 @@ function renderRules() {
 
 dayTabs.forEach((tab) => {
   tab.addEventListener("click", () => {
-    currentDay = tab.dataset.day;
-    dayTabs.forEach((item) => {
-      item.classList.toggle("active", item === tab);
-      item.setAttribute("aria-selected", item === tab ? "true" : "false");
-    });
-    const labels = {
-      saturday: "SATURDAY / FOOTBALL",
-      sunday: "SUNDAY",
-      weekday: "MONDAY — THURSDAY",
-      friday: "FRIDAY",
-      "saturday-school-half": "SATURDAY / HALF DAY",
-      "saturday-school-full": "SATURDAY / FULL DAY"
-    };
-    dayLabel.textContent = labels[currentDay];
-    renderSchedule();
-    renderRules();
+    const scheduleDay = tab.dataset.day;
+    if (scheduleDay === "saturday-school-half" || scheduleDay === "saturday-school-full") {
+      currentDay = scheduleDay;
+      dayTabs.forEach((item) => {
+        item.classList.toggle("active", item === tab);
+        item.setAttribute("aria-selected", String(item === tab));
+      });
+      const saturday = new Date(calendarWeekStart);
+      saturday.setDate(saturday.getDate() + 5);
+      selectedCalendarDate = saturday;
+      dayLabel.textContent = scheduleDay === "saturday-school-half" ? "SATURDAY / HALF DAY" : "SATURDAY / FULL DAY";
+      renderSchedule();
+      renderRules();
+      renderCalendar();
+      return;
+    }
+    let matchingDate = null;
+    for (let index = 0; index < 7; index += 1) {
+      const date = new Date(calendarWeekStart);
+      date.setDate(date.getDate() + index);
+      if (scheduleForDate(date) === scheduleDay) {
+        if (scheduleDay !== "weekday" || (selectedCalendarDate.getDay() >= 1 && selectedCalendarDate.getDay() <= 4)) {
+          matchingDate = date;
+          if (localDateKey(date) === localDateKey(selectedCalendarDate)) break;
+        }
+      }
+    }
+    if (scheduleDay === "weekday" && selectedCalendarDate.getDay() >= 1 && selectedCalendarDate.getDay() <= 4) {
+      matchingDate = new Date(selectedCalendarDate);
+    }
+    if (matchingDate) selectCalendarDay(matchingDate, false);
   });
 });
 
@@ -323,6 +728,9 @@ let ambientContext = null;
 let ambientTimer = null;
 let ambientPlaying = false;
 let ambientMaster = null;
+let musicLimitTimer = null;
+let lastMusicTick = Date.now();
+const dailyMusicLimitSeconds = 2 * 60 * 60;
 
 const ambientMelodies = [
   { name: "Quiet courage", root: 130.81, notes: [1, 1.125, 1.25, 1.5] },
@@ -332,8 +740,10 @@ const ambientMelodies = [
   { name: "Calm after effort", root: 174.61, notes: [1, 1.125, 1.3333, 1.5] }
 ];
 
-function todayMelodyIndex() {
-  return [...localDateKey()].reduce((total, character) => total + character.charCodeAt(0), 0) % ambientMelodies.length;
+function todayMelody() {
+  return activeEventTheme ?
+    { name: `${activeEventTheme.name} glow`, root: activeEventTheme.root, notes: activeEventTheme.notes } :
+    ambientMelodies[[...localDateKey()].reduce((total, character) => total + character.charCodeAt(0), 0) % ambientMelodies.length];
 }
 
 function createAmbientTone(frequency, duration = 9, volume = 0.018) {
@@ -376,12 +786,86 @@ function createAmbientTone(frequency, duration = 9, volume = 0.018) {
 
 function playAmbientPattern() {
   if (!ambientPlaying) return;
-  const melody = ambientMelodies[todayMelodyIndex()];
+  const melody = todayMelody();
   const step = Math.floor(ambientContext.currentTime / 5.2) % melody.notes.length;
   createAmbientTone(melody.root * melody.notes[step]);
 }
 
+function musicUsageKey() {
+  return `my-rhythm-music-usage-${localDateKey()}`;
+}
+
+function getMusicUsageSeconds() {
+  return Number(localStorage.getItem(musicUsageKey()) || 0);
+}
+
+function saveMusicUsageSeconds(seconds) {
+  localStorage.setItem(musicUsageKey(), String(Math.min(dailyMusicLimitSeconds, Math.max(0, seconds))));
+}
+
+function isMusicLimitReached() {
+  return getMusicUsageSeconds() >= dailyMusicLimitSeconds;
+}
+
+function formatMusicRemaining(seconds) {
+  const remaining = Math.max(0, dailyMusicLimitSeconds - seconds);
+  const totalMinutes = Math.ceil(remaining / 60);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return hours > 0 || minutes > 0 ? `${hours}h ${String(minutes).padStart(2, "0")}m remaining today` : "Daily 2-hour music limit reached";
+}
+
+function updateMusicLimitUI() {
+  const status = document.querySelector("#musicLimitStatus");
+  const usedSeconds = getMusicUsageSeconds();
+  const reached = usedSeconds >= dailyMusicLimitSeconds;
+  if (status) {
+    status.textContent = formatMusicRemaining(usedSeconds);
+    status.classList.toggle("exhausted", reached);
+  }
+  document.querySelector("#musicSettings")?.classList.toggle("music-limit-reached", reached);
+  document.querySelectorAll(".spotify-player-block").forEach((block) => {
+    let lock = block.querySelector(".music-limit-lock");
+    if (reached && !lock) {
+      lock = document.createElement("div");
+      lock.className = "music-limit-lock";
+      lock.textContent = "Today's 2-hour music limit has ended. Playback returns at midnight.";
+      block.appendChild(lock);
+    } else if (!reached && lock) {
+      lock.remove();
+    }
+  });
+  if (reached) enforceMusicLimit();
+}
+
+function enforceMusicLimit() {
+  if (ambientPlaying) stopAmbientMusic();
+  document.querySelectorAll(".spotify-embed").forEach((embed) => {
+    embed.removeAttribute("src");
+  });
+}
+
+function isMusicPlaybackActive() {
+  return ambientPlaying || (musicSettings?.classList.contains("open") && !document.hidden);
+}
+
+function tickMusicLimit() {
+  const now = Date.now();
+  const elapsed = Math.min(60, Math.floor((now - lastMusicTick) / 1000));
+  lastMusicTick = now;
+  if (elapsed <= 0 || document.hidden) return;
+  if (isMusicPlaybackActive() && !isMusicLimitReached()) {
+    saveMusicUsageSeconds(getMusicUsageSeconds() + elapsed);
+    updateMusicLimitUI();
+    saveRhythmToCloud().catch(() => {});
+  }
+}
+
 async function startAmbientMusic() {
+  if (isMusicLimitReached()) {
+    updateMusicLimitUI();
+    throw new Error("Today's 2-hour music limit has been reached.");
+  }
   const AudioContextClass = window.AudioContext || window.webkitAudioContext;
   if (!AudioContextClass) throw new Error("Web Audio is not supported by this browser.");
 
@@ -429,19 +913,31 @@ const musicSettings = document.querySelector("#musicSettings");
 const musicVolume = document.querySelector("#musicVolume");
 const musicMood = document.querySelector("#musicMood");
 
-musicMood.textContent = ambientMelodies[todayMelodyIndex()].name;
+musicMood.textContent = todayMelody().name;
 const savedVolume = Number(localStorage.getItem("my-rhythm-music-volume") ?? 55);
 musicVolume.value = String(savedVolume);
 
 musicSettingsToggle?.addEventListener("click", () => {
   const open = musicSettings.classList.toggle("open");
   musicSettings.setAttribute("aria-hidden", String(!open));
+  document.querySelectorAll(".spotify-embed").forEach((embed) => {
+    if (open && !isMusicLimitReached() && embed.dataset.src) {
+      embed.src = embed.dataset.src;
+    } else {
+      embed.removeAttribute("src");
+    }
+  });
+  updateMusicLimitUI();
 });
 
 musicVolume?.addEventListener("input", () => {
   localStorage.setItem("my-rhythm-music-volume", musicVolume.value);
   if (ambientMaster) ambientMaster.gain.setTargetAtTime(Number(musicVolume.value) / 100, ambientContext.currentTime, 0.08);
 });
+
+lastMusicTick = Date.now();
+updateMusicLimitUI();
+if (!musicLimitTimer) musicLimitTimer = window.setInterval(tickMusicLimit, 1000);
 
 const focusToggle = document.querySelector("#focusToggle");
 const focusPanel = document.querySelector("#focusPanel");
@@ -754,16 +1250,5 @@ function drawSky() {
 window.addEventListener("resize", resizeSky);
 resizeSky();
 drawSky();
-renderSchedule();
-renderRules();
-
-window.addEventListener("my-rhythm-cloud-restored", () => {
-  renderSchedule();
-  const savedRescuePlan = localStorage.getItem("my-rhythm-rescue-plan");
-  if (savedRescuePlan && rescueResult) rescueResult.innerHTML = savedRescuePlan;
-  const restoredVolume = localStorage.getItem("my-rhythm-music-volume");
-  if (restoredVolume && musicVolume) musicVolume.value = restoredVolume;
-  if (restoredVolume && ambientMaster && ambientContext) {
-    ambientMaster.gain.setTargetAtTime(Number(restoredVolume) / 100, ambientContext.currentTime, 0.08);
-  }
-});
+selectCalendarDay(new Date());
+renderCalendar();
