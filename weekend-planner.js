@@ -342,6 +342,17 @@ function storageKey(day, index) {
   return `weekend-plan-${localDateKey(selectedCalendarDate)}-${day}-${index}`;
 }
 
+function canFinishTask(endTime) {
+  const selectedKey = localDateKey(selectedCalendarDate);
+  const todayKey = localDateKey();
+  if (selectedKey < todayKey) return true;
+  if (selectedKey > todayKey) return false;
+
+  const [hours, minutes] = endTime.split(":").map(Number);
+  const now = new Date();
+  return now.getHours() > hours || (now.getHours() === hours && now.getMinutes() >= minutes);
+}
+
 let rhythmAuth = null;
 let rhythmDb = null;
 let rhythmUser = null;
@@ -482,7 +493,9 @@ function renderSchedule() {
     const row = document.createElement("article");
     row.className = "task-row";
     row.style.setProperty("--task-color", task.color);
-    if (localStorage.getItem(storageKey(currentDay, index)) === "done") row.classList.add("done");
+    const isDone = localStorage.getItem(storageKey(currentDay, index)) === "done";
+    const isFinishable = canFinishTask(task.end);
+    if (isDone) row.classList.add("done");
     row.innerHTML = `
       <div class="task-dot"></div>
       <time class="task-time" datetime="${task.time}">
@@ -490,8 +503,9 @@ function renderSchedule() {
         <span class="time-end">${task.end}</span>
       </time>
       <div class="task-copy"><h3>${task.title}</h3><p>${task.note}</p></div>
-      <button class="task-check" type="button" aria-label="Mark ${task.title} complete">✓</button>`;
+      <button class="task-check" type="button" aria-label="Mark ${task.title} ${isDone ? "incomplete" : "complete"}"${isFinishable || isDone ? "" : ` disabled title="Available after ${task.end}"`}">✓</button>`;
     row.querySelector(".task-check").addEventListener("click", () => {
+      if (!row.classList.contains("done") && !canFinishTask(task.end)) return;
       row.classList.toggle("done");
       const done = row.classList.contains("done");
       localStorage.setItem(storageKey(currentDay, index), done ? "done" : "");
@@ -1266,3 +1280,7 @@ resizeSky();
 drawSky();
 selectCalendarDay(new Date());
 renderCalendar();
+
+window.setInterval(() => {
+  if (localDateKey(selectedCalendarDate) === localDateKey()) renderSchedule();
+}, 60 * 1000);
