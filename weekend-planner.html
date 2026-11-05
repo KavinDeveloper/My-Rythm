@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400&family=Manrope:wght@300;500;700&family=Playfair+Display:ital,wght@1,600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
-  <link rel="stylesheet" href="weekend-planner.css?v=202611042315">
+  <link rel="stylesheet" href="weekend-planner.css?v=202611051807">
 </head>
 <body>
   <canvas id="sky" aria-hidden="true"></canvas>
@@ -44,16 +44,15 @@
       <span class="brand-dot"></span>
       <span>MY RHYTHM</span>
     </a>
-    <div class="topbar-status">
-      <button class="account-button" id="accountButton" type="button" aria-label="Open account login">
-        <span>ACCOUNT</span>
-        <strong id="accountName">Sign in</strong>
-      </button>
-      <time class="live-clock" id="liveClock" aria-label="Current time">00:00:00</time>
+    <div class="header-right">
       <div class="week-progress">
         <span id="dayProgressText">0% complete</span>
         <div class="progress-track"><i id="dayProgress"></i></div>
       </div>
+      <button class="cloud-sync" id="cloudSync" type="button" aria-label="Sign in to sync My Rhythm">
+        <span id="cloudSyncIcon">☁</span>
+        <span id="cloudSyncLabel">Sign in to sync</span>
+      </button>
     </div>
   </header>
 
@@ -69,33 +68,8 @@
       <span>DAILY MELODY</span>
       <strong id="musicMood">Quiet courage</strong>
     </div>
-    <label for="musicVolume">Ambient volume</label>
+    <label for="musicVolume">Volume</label>
     <input id="musicVolume" type="range" min="0" max="100" value="55">
-    <div class="music-limit" id="musicLimitStatus">3h 00m remaining today</div>
-    <div class="spotify-player-block">
-      <span>ON REPEAT</span>
-      <iframe
-        class="spotify-embed"
-        data-src="https://open.spotify.com/embed/playlist/37i9dQZF1EprC88dv7H8Ax?utm_source=generator&theme=0"
-        src="https://open.spotify.com/embed/playlist/37i9dQZF1EprC88dv7H8Ax?utm_source=generator&theme=0"
-        height="152"
-        title="Spotify On Repeat playlist"
-        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-        loading="lazy">
-      </iframe>
-    </div>
-    <div class="spotify-player-block">
-      <span>LIKED SONGS</span>
-      <iframe
-        class="spotify-embed"
-        data-src="https://open.spotify.com/embed/collection/tracks?utm_source=generator&theme=0"
-        src="https://open.spotify.com/embed/collection/tracks?utm_source=generator&theme=0"
-        height="152"
-        title="Spotify Liked Songs"
-        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-        loading="lazy">
-      </iframe>
-    </div>
   </div>
 
   <button class="focus-toggle" id="focusToggle" type="button" aria-label="Open focus timer">
@@ -123,16 +97,7 @@
         <h1>Rest. Train. Learn.<br><em>Come back stronger.</em></h1>
       </div>
 
-      <section class="week-calendar" aria-label="Weekly calendar">
-        <button class="week-nav" id="previousWeek" type="button" aria-label="Previous week">‹</button>
-        <div class="week-calendar-main">
-          <p id="weekLabel"></p>
-          <div class="week-days" id="weekDays"></div>
-        </div>
-        <button class="week-nav" id="nextWeek" type="button" aria-label="Next week">›</button>
-      </section>
-
-      <div class="day-switcher" role="tablist" aria-label="Choose schedule">
+      <div class="day-switcher" role="tablist" aria-label="Choose weekend day">
         <button class="day-tab active" data-day="saturday" role="tab" aria-selected="true">SATURDAY</button>
         <button class="day-tab" data-day="sunday" role="tab" aria-selected="false">SUNDAY</button>
         <button class="day-tab" data-day="weekday" role="tab" aria-selected="false">WEEKDAYS</button>
@@ -157,25 +122,6 @@
       <div class="rules-grid" id="rulesGrid"></div>
     </section>
   </main>
-
-  <section class="auth-screen" id="authScreen" aria-hidden="true" aria-label="Account login">
-    <button class="auth-close" id="authClose" type="button" aria-label="Close account login">×</button>
-    <div class="auth-card">
-      <p class="auth-kicker">MY RHYTHM ACCOUNT</p>
-      <h2>Carry your rhythm<br><em>on every device.</em></h2>
-      <label for="authEmail">Email</label>
-      <input id="authEmail" type="email" autocomplete="email" placeholder="you@example.com">
-      <label for="authPassword">Password</label>
-      <input id="authPassword" type="password" autocomplete="current-password" placeholder="At least 6 characters">
-      <div class="auth-actions">
-        <button id="authSignIn" type="button">Sign in</button>
-        <button id="authSignUp" type="button">Create account</button>
-      </div>
-      <button class="auth-google" id="authGoogle" type="button">Continue with Google</button>
-      <p class="auth-message" id="authMessage" role="status"></p>
-      <button class="auth-signout" id="authSignOut" type="button">Sign out</button>
-    </div>
-  </section>
 
   <aside class="rescue-panel" id="rescuePanel" aria-hidden="true" aria-label="Rescue Plan AI">
     <div class="rescue-header">
@@ -234,10 +180,7 @@
   </aside>
   <div class="rescue-backdrop" id="rescueBackdrop"></div>
 
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-  <script src="firebase-config.js"></script>
-  <script src="weekend-planner.js?v=202611042315"></script>
+  <script src="weekend-planner.js?v=202611051807"></script>
+  <script type="module" src="firebase-sync.js?v=202611051807"></script>
 </body>
 </html>
