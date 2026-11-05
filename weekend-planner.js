@@ -342,6 +342,125 @@ function storageKey(day, index) {
   return `weekend-plan-${localDateKey(selectedCalendarDate)}-${day}-${index}`;
 }
 
+let rhythmAuth = null;
+let rhythmDb = null;
+let rhythmUser = null;
+let rhythmUnsubscribe = null;
+
+function isFirebaseConfigured() {
+  const config = window.MY_RHYTHM_FIREBASE_CONFIG;
+  return config && typeof firebase !== "undefined" && config.apiKey && config.projectId;
+}
+
+function initializeCloudSync() {
+  if (!isFirebaseConfigured()) {
+    document.querySelector("#authMessage").textContent = "Cloud sync is not configured yet. This device will continue using local progress.";
+    return;
+  }
+
+  if (!firebase.apps.length) firebase.initializeApp(window.MY_RHYTHM_FIREBASE_CONFIG);
+  rhythmAuth = firebase.auth();
+  rhythmDb = firebase.firestore();
+  rhythmAuth.onAuthStateChanged((user) => {
+    rhythmUser = user;
+    const name = document.querySelector("#accountName");
+    const signOutButton = document.querySelector("#authSignOut");
+    if (user) {
+      name.textContent = user.displayName || user.email?.split("@")[0] || "Signed in";
+      signOutButton.classList.add("visible");
+      document.querySelector("#authMessage").textContent = "Signed in. Your rhythm is syncing across devices.";
+      startCloudSnapshot();
+      saveRhythmToCloud();
+    } else {
+      name.textContent = "Sign in";
+      signOutButton.classList.remove("visible");
+      if (rhythmUnsubscribe) rhythmUnsubscribe();
+      rhythmUnsubscribe = null;
+    }
+  });
+}
+
+function collectSyncedRhythm() {
+  const state = {};
+  Object.keys(localStorage).forEach((key) => {
+    if (key.startsWith("weekend-plan-") || key.startsWith("my-rhythm-completed-") || key.startsWith("my-rhythm-music-usage-") || key.startsWith("my-rhythm-week-celebrated-") || key === "my-rhythm-music-volume" || key === "my-rhythm-rescue-plan") {
+      state[key] = localStorage.getItem(key);
+    }
+  });
+  return state;
+}
+
+async function saveRhythmToCloud() {
+  if (!rhythmUser || !rhythmDb) return;
+  await rhythmDb.collection("rhythm-users").doc(rhythmUser.uid).set({
+    state: collectSyncedRhythm(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  }, { merge: true });
+}
+
+function startCloudSnapshot() {
+  if (!rhythmUser || !rhythmDb) return;
+  if (rhythmUnsubscribe) rhythmUnsubscribe();
+  rhythmUnsubscribe = rhythmDb.collection("rhythm-users").doc(rhythmUser.uid).onSnapshot((snapshot) => {
+    const state = snapshot.data()?.state;
+    if (!state) return;
+    Object.entries(state).forEach(([key, value]) => {
+      if (value === null) localStorage.removeItem(key);
+      else localStorage.setItem(key, value);
+    });
+    renderCalendar();
+    renderSchedule();
+    renderRules();
+    updateMusicLimitUI?.();
+  });
+}
+
+const authScreen = document.querySelector("#authScreen");
+document.querySelector("#accountButton")?.addEventListener("click", () => {
+  authScreen.classList.add("open");
+  authScreen.setAttribute("aria-hidden", "false");
+});
+document.querySelector("#authClose")?.addEventListener("click", () => {
+  authScreen.classList.remove("open");
+  authScreen.setAttribute("aria-hidden", "true");
+});
+
+document.querySelector("#authSignIn")?.addEventListener("click", async () => {
+  if (!isFirebaseConfigured()) return;
+  try {
+    await rhythmAuth.signInWithEmailAndPassword(document.querySelector("#authEmail").value, document.querySelector("#authPassword").value);
+    authScreen.classList.remove("open");
+  } catch (error) {
+    document.querySelector("#authMessage").textContent = error.message;
+  }
+});
+
+document.querySelector("#authSignUp")?.addEventListener("click", async () => {
+  if (!isFirebaseConfigured()) return;
+  try {
+    await rhythmAuth.createUserWithEmailAndPassword(document.querySelector("#authEmail").value, document.querySelector("#authPassword").value);
+    authScreen.classList.remove("open");
+  } catch (error) {
+    document.querySelector("#authMessage").textContent = error.message;
+  }
+});
+
+document.querySelector("#authGoogle")?.addEventListener("click", async () => {
+  if (!isFirebaseConfigured()) return;
+  try {
+    await rhythmAuth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+    authScreen.classList.remove("open");
+  } catch (error) {
+    document.querySelector("#authMessage").textContent = error.message;
+  }
+});
+
+document.querySelector("#authSignOut")?.addEventListener("click", async () => {
+  if (rhythmAuth) await rhythmAuth.signOut();
+});
+
+initializeCloudSync();
+
 function renderSchedule() {
   timeline.innerHTML = "";
   const plan = schedules[currentDay];
@@ -364,6 +483,7 @@ function renderSchedule() {
       localStorage.setItem(storageKey(currentDay, index), done ? "done" : "");
       if (done) celebrateTask(row);
       updateProgress(done);
+      saveRhythmToCloud().catch(() => {});
     });
     timeline.appendChild(row);
   });
@@ -610,7 +730,7 @@ let ambientPlaying = false;
 let ambientMaster = null;
 let musicLimitTimer = null;
 let lastMusicTick = Date.now();
-const dailyMusicLimitSeconds = 3 * 60 * 60;
+const dailyMusicLimitSeconds = 2 * 60 * 60;
 
 const ambientMelodies = [
   { name: "Quiet courage", root: 130.81, notes: [1, 1.125, 1.25, 1.5] },
@@ -692,7 +812,7 @@ function formatMusicRemaining(seconds) {
   const totalMinutes = Math.ceil(remaining / 60);
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
-  return hours > 0 || minutes > 0 ? `${hours}h ${String(minutes).padStart(2, "0")}m remaining today` : "Daily 3-hour music limit reached";
+  return hours > 0 || minutes > 0 ? `${hours}h ${String(minutes).padStart(2, "0")}m remaining today` : "Daily 2-hour music limit reached";
 }
 
 function updateMusicLimitUI() {
@@ -709,7 +829,7 @@ function updateMusicLimitUI() {
     if (reached && !lock) {
       lock = document.createElement("div");
       lock.className = "music-limit-lock";
-      lock.textContent = "Today's 3-hour music limit has ended. Playback returns at midnight.";
+      lock.textContent = "Today's 2-hour music limit has ended. Playback returns at midnight.";
       block.appendChild(lock);
     } else if (!reached && lock) {
       lock.remove();
@@ -737,13 +857,14 @@ function tickMusicLimit() {
   if (isMusicPlaybackActive() && !isMusicLimitReached()) {
     saveMusicUsageSeconds(getMusicUsageSeconds() + elapsed);
     updateMusicLimitUI();
+    saveRhythmToCloud().catch(() => {});
   }
 }
 
 async function startAmbientMusic() {
   if (isMusicLimitReached()) {
     updateMusicLimitUI();
-    throw new Error("Today's 3-hour music limit has been reached.");
+    throw new Error("Today's 2-hour music limit has been reached.");
   }
   const AudioContextClass = window.AudioContext || window.webkitAudioContext;
   if (!AudioContextClass) throw new Error("Web Audio is not supported by this browser.");

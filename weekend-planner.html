@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400&family=Manrope:wght@300;500;700&family=Playfair+Display:ital,wght@1,600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
-  <link rel="stylesheet" href="weekend-planner.css?v=202611042300">
+  <link rel="stylesheet" href="weekend-planner.css?v=202611042315">
 </head>
 <body>
   <canvas id="sky" aria-hidden="true"></canvas>
@@ -45,6 +45,10 @@
       <span>MY RHYTHM</span>
     </a>
     <div class="topbar-status">
+      <button class="account-button" id="accountButton" type="button" aria-label="Open account login">
+        <span>ACCOUNT</span>
+        <strong id="accountName">Sign in</strong>
+      </button>
       <time class="live-clock" id="liveClock" aria-label="Current time">00:00:00</time>
       <div class="week-progress">
         <span id="dayProgressText">0% complete</span>
@@ -154,6 +158,25 @@
     </section>
   </main>
 
+  <section class="auth-screen" id="authScreen" aria-hidden="true" aria-label="Account login">
+    <button class="auth-close" id="authClose" type="button" aria-label="Close account login">×</button>
+    <div class="auth-card">
+      <p class="auth-kicker">MY RHYTHM ACCOUNT</p>
+      <h2>Carry your rhythm<br><em>on every device.</em></h2>
+      <label for="authEmail">Email</label>
+      <input id="authEmail" type="email" autocomplete="email" placeholder="you@example.com">
+      <label for="authPassword">Password</label>
+      <input id="authPassword" type="password" autocomplete="current-password" placeholder="At least 6 characters">
+      <div class="auth-actions">
+        <button id="authSignIn" type="button">Sign in</button>
+        <button id="authSignUp" type="button">Create account</button>
+      </div>
+      <button class="auth-google" id="authGoogle" type="button">Continue with Google</button>
+      <p class="auth-message" id="authMessage" role="status"></p>
+      <button class="auth-signout" id="authSignOut" type="button">Sign out</button>
+    </div>
+  </section>
+
   <aside class="rescue-panel" id="rescuePanel" aria-hidden="true" aria-label="Rescue Plan AI">
     <div class="rescue-header">
       <div>
@@ -211,6 +234,10 @@
   </aside>
   <div class="rescue-backdrop" id="rescueBackdrop"></div>
 
-  <script src="weekend-planner.js?v=202611042300"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="weekend-planner.js?v=202611042315"></script>
 </body>
 </html>

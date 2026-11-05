@@ -205,8 +205,26 @@ button, a { cursor: none; }
 }
 .brand { color: var(--cream); text-decoration: none; display: flex; align-items: center; gap: 13px; font: 10px "DM Mono", monospace; letter-spacing: .18em; }
 .brand-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--pink); box-shadow: 0 0 18px var(--pink); }
-.topbar-status { display: flex; align-items: center; gap: 20px; }
-.live-clock { min-width: 82px; font: 9px "DM Mono", monospace; letter-spacing: .08em; color: var(--mint); text-align: right; }
+.topbar-status { display: flex; align-items: center; gap: 20px; }.account-button { height: 38px; min-width: 96px; border: 1px solid rgba(238,234,221,.12); border-radius: 999px; background: rgba(9,11,22,.62); color: var(--cream); padding: 0 12px; display: flex; flex-direction: column; justify-content: center; align-items: flex-end; }
+.account-button span { font: 7px "DM Mono", monospace; letter-spacing: .12em; opacity: .48; }
+.account-button strong { font: 9px "DM Mono", monospace; font-weight: 400; color: var(--mint); }
+.auth-screen { position: fixed; inset: 0; z-index: 240; display: grid; place-items: center; padding: 24px; background: rgba(5,7,15,.82); backdrop-filter: blur(18px); opacity: 0; visibility: hidden; transition: .35s ease; }
+.auth-screen.open { opacity: 1; visibility: visible; }
+.auth-close { position: absolute; right: 24px; top: 24px; width: 42px; height: 42px; border-radius: 50%; border: 1px solid rgba(238,234,221,.12); background: rgba(9,11,22,.72); color: var(--cream); font-size: 22px; }
+.auth-card { width: min(420px, calc(100vw - 48px)); padding: 38px; border: 1px solid rgba(238,234,221,.1); border-radius: 8px; background: rgba(13,15,31,.98); box-shadow: 0 30px 90px rgba(0,0,0,.48); }
+.auth-kicker { margin: 0 0 10px; color: var(--pink); font: 8px "DM Mono", monospace; letter-spacing: .18em; }
+.auth-card h2 { margin: 0 0 28px; font-size: 42px; line-height: 1; font-weight: 300; letter-spacing: -.04em; }
+.auth-card h2 em { color: var(--violet); font-family: "Playfair Display", serif; }
+.auth-card label { display: block; margin: 12px 0 7px; font: 8px "DM Mono", monospace; letter-spacing: .12em; opacity: .58; }
+.auth-card input { width: 100%; height: 46px; border: 1px solid rgba(238,234,221,.12); border-radius: 8px; background: rgba(238,234,221,.04); color: var(--cream); padding: 0 14px; outline: none; }
+.auth-card input:focus { border-color: var(--violet); }
+.auth-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px; }
+.auth-actions button, .auth-google, .auth-signout { min-height: 44px; border: 1px solid rgba(238,234,221,.12); border-radius: 999px; background: transparent; color: var(--cream); font: 8px "DM Mono", monospace; letter-spacing: .08em; }
+.auth-actions button:first-child { background: var(--pink); border-color: var(--pink); color: var(--ink); }
+.auth-google { width: 100%; margin-top: 8px; }
+.auth-message { min-height: 18px; margin: 12px 0 4px; color: var(--mint); font-size: 11px; line-height: 1.5; }
+.auth-signout { display: none; width: 100%; margin-top: 5px; }
+.auth-signout.visible { display: block; }.live-clock { min-width: 82px; font: 9px "DM Mono", monospace; letter-spacing: .08em; color: var(--mint); text-align: right; }
 .week-progress { width: 155px; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; font: 8px "DM Mono", monospace; letter-spacing: .12em; opacity: .7; }
 .progress-track { width: 155px; height: 1px; background: rgba(238,234,221,.12); }
 .progress-track i { display: block; width: 0; height: 100%; background: var(--pink); transition: width .5s; box-shadow: 0 0 8px var(--pink); }
@@ -574,6 +592,12 @@ h1 em { color: var(--violet); font-family: "Playfair Display", serif; }
 }
 @media (max-width: 560px) {
   .topbar { height: 78px; }
+  .topbar-status { gap: 6px; }
+  .account-button { min-width: 70px; height: 36px; padding: 0 8px; }
+  .account-button strong { max-width: 54px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .live-clock { min-width: 56px; font-size: 7px; }
+  .auth-card { padding: 28px 22px; }
+  .auth-card h2 { font-size: 34px; }
   .welcome-content { width: calc(100vw - 34px); }
   .welcome-kicker { margin-bottom: 18px; font-size: 7px; }
   .welcome-content h1 { font-size: clamp(58px, 19vw, 82px); }
