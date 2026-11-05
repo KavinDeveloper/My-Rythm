@@ -370,7 +370,6 @@ function initializeCloudSync() {
       signOutButton.classList.add("visible");
       document.querySelector("#authMessage").textContent = "Signed in. Your rhythm is syncing across devices.";
       startCloudSnapshot();
-      saveRhythmToCloud();
     } else {
       name.textContent = "Sign in";
       signOutButton.classList.remove("visible");
@@ -390,6 +389,19 @@ function collectSyncedRhythm() {
   return state;
 }
 
+function mergeRhythmStates(localState, cloudState) {
+  const merged = { ...localState };
+  Object.entries(cloudState || {}).forEach(([key, cloudValue]) => {
+    if (key.startsWith("weekend-plan-") || key.startsWith("my-rhythm-completed-")) {
+      if (localState[key] === "done" || cloudValue === "done") merged[key] = "done";
+      else if (!(key in localState)) merged[key] = cloudValue ?? "";
+    } else if (!(key in localState) || localState[key] === null || localState[key] === "") {
+      merged[key] = cloudValue;
+    }
+  });
+  return merged;
+}
+
 async function saveRhythmToCloud() {
   if (!rhythmUser || !rhythmDb) return;
   await rhythmDb.collection("rhythm-users").doc(rhythmUser.uid).set({
@@ -404,7 +416,8 @@ function startCloudSnapshot() {
   rhythmUnsubscribe = rhythmDb.collection("rhythm-users").doc(rhythmUser.uid).onSnapshot((snapshot) => {
     const state = snapshot.data()?.state;
     if (!state) return;
-    Object.entries(state).forEach(([key, value]) => {
+    const merged = mergeRhythmStates(collectSyncedRhythm(), state);
+    Object.entries(merged).forEach(([key, value]) => {
       if (value === null) localStorage.removeItem(key);
       else localStorage.setItem(key, value);
     });
@@ -412,6 +425,7 @@ function startCloudSnapshot() {
     renderSchedule();
     renderRules();
     updateMusicLimitUI?.();
+    saveRhythmToCloud().catch(() => {});
   });
 }
 
